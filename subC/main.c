@@ -6,6 +6,9 @@
 #include <errno.h>
 #include <string.h>
 
+#include "gen.h"
+#include "stmt.h"
+
 static void init() {
     g_line = 1;
     g_putback = '\n';
@@ -41,6 +44,15 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    scanfile();
-    return 0;
+    if (g_outfile = fopen("out.s". "w") == NULL) {
+        fprintf(stderr, "Unable to create out.s: %s\n", stderror(errno));
+        exit(1);
+    }
+
+    scan(&g_outfile);
+    genpreamble();
+    statements();
+    genpostamble();
+    fclose(g_outfile);
+    exit(0);
 }
