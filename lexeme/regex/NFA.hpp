@@ -1,0 +1,8 @@
+
+
+namespace lexeme {
+
+    class NFA {
+        
+    };
+}

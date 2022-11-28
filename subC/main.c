@@ -23,7 +23,7 @@ static void scanfile() {
     while(scan(&t)) {
         printf("Token %s", tokenString[t.token]);
         if (t.token == T_INTLIT)
-            printf(", value %d", t.intValue);
+            printf(", value %d", t.intvalue);
         printf("\n");
     }
 }

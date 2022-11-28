@@ -13,11 +13,11 @@ enum {
 
 struct token {
     int token;
-    int intValue;
+    int intvalue;
 };
 
 enum {
-    A_ADD, A_SUBTRACT, A_MULTIPLY, A_DEVIDE, A_INTLIT, 
+    A_ADD, A_SUBSTRACT, A_MULTIPLY, A_DIVIDE, A_INTLIT, 
     A_IDENT, A_LVIDENT, A_ASSIGN
 };
 
@@ -26,7 +26,7 @@ struct ASTnode {
     struct ASTNode* left;
     struct ASTNode* right;
     union {
-        int intValue;
+        int intvalue;
         int id;
     } v;
 };

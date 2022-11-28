@@ -77,7 +77,7 @@ int scan(struct token* t) {
             break;
         default:
             if (isdigit(c)) {
-                t->intValue = scanint(c);
+                t->intvalue = scanint(c);
                 t->token = T_INTLIT;
                 break;
             }
