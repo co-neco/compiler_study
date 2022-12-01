@@ -52,39 +52,40 @@ void cgpreamble() {
 }
 
 void cgpostamble() {
-	fputs("\tmovl $0, $eax\n" "\tpopq $rbp\n" "\tret\n", g_outfile);
+	fputs("\tmovl $0, %eax\n" "\tpopq %rbp\n" "\tret\n", g_outfile);
 }
 
 int cgloadint(int value) {
-	int r = allc_register();
+	int r = alloc_register();
 	fprintf(g_outfile, "\tmovq\t$%d, %s\n", value, reglist[r]);
 	return r;
 }
 
 int cgloadglob(char* identifier) {
 	int r = alloc_register();
-	fprintf(g_outfile, "\tmovq\t%s(%%rip), %s", identifier, reglist[r]);
+	fprintf(g_outfile, "\tmovq\t%s(%%rip), %s\n", identifier, reglist[r]);
 	return r;
 }
 
-void cgstoreglob(int r, char* identifier) {
+int cgstoreglob(int r, char* identifier) {
 	fprintf(g_outfile, "\tmovq\t%s, %s(%%rip)\n", reglist[r], identifier);
+	return r;
 }
 
 int cgadd(int r1, int r2) {
-	fprintf(g_outfile, "\tsubq\t%s, %s", reglist[r2], reglist[r1]);
-	free_register(r2);
-	return r1;
+	fprintf(g_outfile, "\taddq\t%s, %s\n", reglist[r1], reglist[r2]);
+	free_register(r1);
+	return r2;
 }
 
 int cgsub(int r1, int r2) {
-	fprintf(Outfile, "\tsubq\t%s, %s\n", reglist[r2], reglist[r1]);
+	fprintf(g_outfile, "\tsubq\t%s, %s\n", reglist[r2], reglist[r1]);
 	free_register(r2);
 	return (r1);
 }
 
 int cgmul(int r1, int r2) {
-	fprintf(g_outfile, "\timulq\t%s, %s", reglist[r1], reglist[r2]);
+	fprintf(g_outfile, "\timulq\t%s, %s\n", reglist[r1], reglist[r2]);
 	free_register(r1);
 	return r2;
 }
@@ -94,7 +95,7 @@ int cgdiv(int r1, int r2) {
 	fprintf(g_outfile, "\tcqo\n");
 	fprintf(g_outfile, "\tidivq\t%s\n", reglist[r2]);
 	fprintf(g_outfile, "\tmovq\t%%rax, %s\n", reglist[r1]);
-	free_register[r2];
+	free_register(r2);
 	return r1;
 }
 

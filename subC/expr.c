@@ -1,6 +1,10 @@
 #include "defs.h"
 #include "data.h"
 #include "misc.h"
+#include "tree.h"
+#include "sym.h"
+#include "scan.h"
+#include "gen.h"
 
 #include "expr.h"
 
@@ -53,9 +57,9 @@ static int op_precedence(int tokentype) {
 	return prec;
 }
 
-static ASTnode* binexpr(int prevprec) {
+struct ASTnode* binexpr(int prevprec) {
 
-	struct ASTnode* left, right;
+	struct ASTnode* left, *right;
 	int tokentype;
 
 	left = primary();

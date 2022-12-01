@@ -4,6 +4,8 @@
 
 #include "tree.h"
 
+#include <stdlib.h>
+
 struct ASTnode* mkastnode(
 	int op, 
 	struct ASTnode* left, 

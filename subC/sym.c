@@ -1,5 +1,10 @@
 #include "defs.h"
 #include "data.h"
+#include "misc.h"
+
+#include "sym.h"
+
+#include <string.h>
 
 static int g_globindex = 0;
 

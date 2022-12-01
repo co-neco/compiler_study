@@ -1,12 +1,16 @@
 #include "defs.h"
 #include "data.h"
 #include "misc.h"
+#include "gen.h"
+#include "expr.h"
+#include "tree.h"
+#include "sym.h"
 
 #include "stmt.h"
 
 void print_statement() {
 
-	struct ASTnode* node;
+	struct ASTnode* tree;
 	int reg;
 
 	match(T_PRINT, "print");
@@ -18,6 +22,19 @@ void print_statement() {
 
 	semi();
 }
+
+void var_declaration(void) {
+
+	// Ensure we have an 'int' token followed by an identifier
+	// and a semicolon. Text now has the identifier's name.
+	// Add it as a known identifier
+	match(T_INT, "int");
+	ident();
+	addglob(g_identtext);
+	genglobsym(g_identtext);
+	semi();
+}
+
 
 void assignment_statement() {
 
@@ -46,7 +63,7 @@ void statements() {
 	while (1) {
 		switch (g_token.token) {
 		case T_PRINT:
-			print_statment();
+			print_statement();
 			break;
 		case T_INT:
 			var_declaration();

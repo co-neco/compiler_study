@@ -1,5 +1,7 @@
 #pragma once
 
+#include "defs.h"
+
 #include <stdio.h>
 
 #ifndef extern_

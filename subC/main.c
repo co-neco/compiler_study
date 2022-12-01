@@ -5,6 +5,7 @@
 #include "scan.h"
 #include <errno.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "gen.h"
 #include "stmt.h"
@@ -32,7 +33,6 @@ static void scanfile() {
 }
 
 int main(int argc, char* argv[]) {
-
     if (argc != 2) {
         usage(argv[0]);
         return -1;
@@ -45,15 +45,16 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    if (g_outfile = fopen("out.s". "w") == NULL) {
-        fprintf(stderr, "Unable to create out.s: %s\n", stderror(errno));
-        exit(1);
+    if ((g_outfile = fopen("out.s", "w")) == NULL) {
+        fprintf(stderr, "Unable to create out.s: %s\n", strerror(errno));
+        return -1;
     }
 
-    scan(&g_outfile);
+    scan(&g_token);
     genpreamble();
     statements();
     genpostamble();
     fclose(g_outfile);
-    exit(0);
+    
+    return 0;
 }

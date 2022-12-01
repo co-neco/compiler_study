@@ -23,8 +23,8 @@ enum {
 
 struct ASTnode {
     int op;
-    struct ASTNode* left;
-    struct ASTNode* right;
+    struct ASTnode* left;
+    struct ASTnode* right;
     union {
         int intvalue;
         int id;

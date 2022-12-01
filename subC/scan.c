@@ -1,5 +1,6 @@
 #include "scan.h"
 #include "data.h"
+#include "misc.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -57,11 +58,46 @@ static int scanint(int c) {
     return val;
 }
 
+static int scanident(int c, char* buf, int lim) {
+    int i = 0;
+
+    while (isalpha(c) || isdigit(c) || '_' == c){
+        if (lim  - 1 == i){
+            fatal("Identifier too long");
+        }
+        else if (i < lim - 1){
+            buf[i++] = c;
+        }
+        c = next();
+    }
+
+    putback(c);
+    buf[i] = '\0';
+    return i;
+}
+
+static int keyword(char* ident) {
+    switch (*ident) {
+    case 'i':
+        if (!strcmp(ident, "int"))
+            return T_INT;
+        break;
+    case 'p':
+        if(!strcmp(ident, "print"))
+            return T_PRINT;
+        break;
+    }
+    return 0;
+} 
+
 int scan(struct token* t) {
+
+    int tokentype;
     int c = skip();
 
     switch (c) {
         case EOF:
+            t->token = T_EOF;
             return 0;
         case '+':
             t->token = T_PLUS;
@@ -75,14 +111,29 @@ int scan(struct token* t) {
         case '/':
             t->token = T_SLASH;
             break;
+        case ';':
+            t->token = T_SEMI;
+            break;
+        case '=':
+            t->token = T_EQUALS;
+            break;
         default:
             if (isdigit(c)) {
                 t->intvalue = scanint(c);
                 t->token = T_INTLIT;
                 break;
             }
+            else if (isalpha(c) || '_' == c) {
+                scanident(c, g_identtext, TEXTLEN);
+                if (tokentype = keyword(g_identtext)){
+                    t->token = tokentype;
+                    break;
+                }
+                t->token = T_IDENT;
+                break;
+            }
 
-            printf("Unrecognized character %c on line %d\n", c, g_line);
+            fatalc("Unrecognized character", c);
             return 0;
     }
 

@@ -1,3 +1,3 @@
 #pragma once
 
-struct ASTnode* binexpr(int ptp);
+struct ASTnode* binexpr(int prevprec);
