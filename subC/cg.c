@@ -6,6 +6,7 @@
 
 static int freereg[4];
 static char* reglist[4] = { "%r8", "%r9", "%r10", "%r11" };
+static char* breglist[4] = { "%r8b", "%r9b", "%r10b", "%r11b" };
 
 void freeall_registers() {
 	freereg[0] = freereg[1] = freereg[2] = freereg[3] = 1;
@@ -108,3 +109,16 @@ void cgprintint(int r) {
 void cgglobsym(char* sym) {
 	fprintf(g_outfile, "\t.comm\t%s,8,8\n", sym);
 }
+
+static int cgcompare(int r1, int r2, char* how) {
+	fprintf(g_outfile, "\tcmpq\t%s, %s\n", reglist[r2], reglist[r1]);
+	fprintf(g_outfile, "\t%s\t%s\n", how, breglist[r2]);
+	fprintf(g_outfile, "\tandq\t$255, %s\n", reglist[r2]);
+	free_register(r1);
+	return r2;
+}
+
+int cgequal(int r1, int r2) { return cgcompare(r1, r2, "sete"); }
+int cgnotequal(int r1, int r2) { return cgcompare(r1, r2, "setne"); }
+int cglessthan(int r1, int r2) { return cgcompare(r1, r2, "setl"); }
+int cggreatthan()

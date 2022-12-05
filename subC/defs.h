@@ -5,8 +5,11 @@
 
 // Token types
 enum {
-    T_EOF, T_PLUS, T_MINUS, T_STAR, T_SLASH, T_INTLIT, T_SEMI, T_EQUALS,
-    T_IDENT,
+    T_EOF, 
+    T_PLUS, T_MINUS, 
+    T_STAR, T_SLASH, 
+    T_EQ, T_NE, T_LT, T_GT, T_LE, T_GE,
+    T_INTLIT, T_SEMI, T_ASSIGN, T_IDENT,
     // Keywords
     T_PRINT, T_INT
 };
@@ -17,7 +20,10 @@ struct token {
 };
 
 enum {
-    A_ADD, A_SUBSTRACT, A_MULTIPLY, A_DIVIDE, A_INTLIT, 
+    // The order must be the same as token's enum
+    A_ADD = 1, A_SUBSTRACT, A_MULTIPLY, A_DIVIDE, 
+    A_EQ, A_NE, A_LT, A_GT, A_LE, A_GE, 
+    A_INTLIT, 
     A_IDENT, A_LVIDENT, A_ASSIGN
 };
 
