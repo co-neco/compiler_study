@@ -1,3 +1,6 @@
 *.exe
 .vs/
 .vscode/
+out
+out.s
+comp1

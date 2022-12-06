@@ -38,11 +38,11 @@ int genAST(struct ASTnode* n, int reg) {
 	case A_LT:
 		return cglessthan(leftreg, rightreg);
 	case A_GT:
-		return cggreatthan(leftreg, rightreg);
+		return cggreaterthan(leftreg, rightreg);
 	case A_LE:
 		return cglessequal(leftreg, rightreg);
 	case A_GE:
-		return cggreatequal(leftreg, rightreg);
+		return cggreaterequal(leftreg, rightreg);
 	default:
 		fatald("Unknown AST operator", n->op);
 	}
