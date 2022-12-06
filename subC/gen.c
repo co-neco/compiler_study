@@ -31,6 +31,18 @@ int genAST(struct ASTnode* n, int reg) {
 		return cgstoreglob(reg, Gsym[n->v.id].name);
 	case A_ASSIGN:
 		return rightreg;
+	case A_EQ:
+		return cgequal(leftreg, rightreg);
+	case A_NE:
+		return cgnotequal(leftreg, rightreg);
+	case A_LT:
+		return cglessthan(leftreg, rightreg);
+	case A_GT:
+		return cggreatthan(leftreg, rightreg);
+	case A_LE:
+		return cglessequal(leftreg, rightreg);
+	case A_GE:
+		return cggreatequal(leftreg, rightreg);
 	default:
 		fatald("Unknown AST operator", n->op);
 	}

@@ -121,4 +121,6 @@ static int cgcompare(int r1, int r2, char* how) {
 int cgequal(int r1, int r2) { return cgcompare(r1, r2, "sete"); }
 int cgnotequal(int r1, int r2) { return cgcompare(r1, r2, "setne"); }
 int cglessthan(int r1, int r2) { return cgcompare(r1, r2, "setl"); }
-int cggreatthan()
+int cggreatthan(int r1, int r2) { return cgcompare(r1, r2, "setg"); }
+int cglessequal(int r1, int r2) { return cgcompare(r1, r2, "setle"); }
+int cggreatequal(int r1, int r2) { return cgcompare(r1, r2, "setge"); }

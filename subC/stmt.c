@@ -47,7 +47,7 @@ void assignment_statement() {
 		fatals("Undeclared variable", g_identtext);
 
 	right = mkastleaf(A_LVIDENT, id);
-	match(T_EQUALS, "=");
+	match(T_EQ, "=");
 	left = binexpr(0);
 	
 	tree = mkastnode(A_ASSIGN, left, right, 0);
