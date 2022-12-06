@@ -31,6 +31,8 @@ int genAST(struct ASTnode* n, int reg) {
 		return cgstoreglob(reg, Gsym[n->v.id].name);
 	case A_ASSIGN:
 		return rightreg;
+	case A_IF:
+		break;
 	case A_EQ:
 		return cgequal(leftreg, rightreg);
 	case A_NE:

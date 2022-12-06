@@ -20,6 +20,29 @@ void ident() {
 	match(T_IDENT, "identifier");
 }
 
+void lbrace() {
+	match(T_LBRACE, "{");
+}
+
+void rbrace() {
+	match(T_RBRACE, "}");
+}
+
+void lparent() {
+	match(T_LPARENT, "(");
+}
+
+void rparent() {
+	match(T_RPARENT, ")");
+}
+
+int isarithop(int op) {
+	if (op >= T_EQ && op <= T_GT)
+		return 1;
+	else
+		return 0;
+}
+
 void fatal(char* s) {
 	fprintf(stderr, "%s on line %d\n", s, g_line); exit(1);
 }

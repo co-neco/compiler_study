@@ -81,11 +81,14 @@ static int keyword(char* ident) {
     case 'i':
         if (!strcmp(ident, "int"))
             return T_INT;
-        break;
+        else if (!strcmp(ident, "if"))
+            return T_IF;
     case 'p':
         if(!strcmp(ident, "print"))
             return T_PRINT;
-        break;
+    case 'e':
+        if (!strcmp(ident, "else"))
+            return T_ELSE;
     }
     return 0;
 } 

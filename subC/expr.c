@@ -72,7 +72,7 @@ struct ASTnode* binexpr(int prevprec) {
 		scan(&g_token);
 
 		right = binexpr(opprec[tokentype]);
-		left = mkastnode(arithop(tokentype), left, right, 0);
+		left = mkastnode(arithop(tokentype), left, NULL, right, 0);
 
 		tokentype = g_token.token;
 		if (tokentype == T_SEMI)

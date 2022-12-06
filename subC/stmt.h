@@ -1,3 +1,5 @@
 #pragma once
 
-void statements(void);
+#include "defs.h"
+
+struct ASTnode* compound_statement(void);

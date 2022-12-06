@@ -5,25 +5,22 @@
 #include "expr.h"
 #include "tree.h"
 #include "sym.h"
+#include "scan.h"
 
 #include "stmt.h"
 
-void print_statement() {
-
-	struct ASTnode* tree;
-	int reg;
+struct ASTnode *print_statement()
+{
+	struct ASTnode *tree;
 
 	match(T_PRINT, "print");
-
 	tree = binexpr(0);
-	reg = genAST(tree, -1);
-	genprintint(reg);
-	genfreeregs();
-
 	semi();
+	return tree;
 }
 
-void var_declaration(void) {
+void var_declaration(void)
+{
 
 	// Ensure we have an 'int' token followed by an identifier
 	// and a semicolon. Text now has the identifier's name.
@@ -35,10 +32,10 @@ void var_declaration(void) {
 	semi();
 }
 
+struct ASTnode *assignment_statement()
+{
 
-void assignment_statement() {
-
-	struct ASTnode* left, * right, * tree;
+	struct ASTnode *left, *right, *tree;
 	int id;
 
 	ident();
@@ -49,32 +46,74 @@ void assignment_statement() {
 	right = mkastleaf(A_LVIDENT, id);
 	match(T_ASSIGN, "=");
 	left = binexpr(0);
-	
-	tree = mkastnode(A_ASSIGN, left, right, 0);
-	
-	genAST(tree, -1);
-	genfreeregs();
+
+	tree = mkastnode(A_ASSIGN, left, NULL, right, 0);
 
 	semi();
+	return tree;
 }
 
-void statements() {
+struct ASTnode *if_statement()
+{
+	struct ASTnode *tree, *cond, *true, *false = NULL;
 
-	while (1) {
-		switch (g_token.token) {
+	match(T_IF, "if");
+	lparent();
+
+	cond = binexpr(0);
+	if (!isarithop(cond->op))
+		fatald("If statement with wrong condition operator", cond->op);
+
+	rparent();
+	true = compound_statement();
+
+	if (g_token.token == T_ELSE) {
+		scan(&g_token);
+		false = compound_statement();
+	}
+	
+	return mkastnode(A_IF, cond, true, false, 0);
+}
+
+struct ASTnode *compound_statement()
+{
+	struct ASTnode *left = NULL;
+	struct ASTnode *tree;
+
+	lbrace();
+
+	while (1)
+	{
+		switch (g_token.token)
+		{
 		case T_PRINT:
-			print_statement();
+			tree = print_statement();
 			break;
 		case T_INT:
 			var_declaration();
+			tree = NULL;
 			break;
 		case T_IDENT:
-			assignment_statement();
+			tree = assignment_statment();
 			break;
+		case T_IF:
+			tree = if_statement();
+		case T_RBRACE:
+			rbrace();
+			return left;
 		case T_EOF:
 			return;
-		default: 
+		default:
 			fatald("Syntax error, token", g_token.token);
 		}
+
+		if (tree != NULL)
+		{
+			if (left == NULL)
+				left = tree;
+			else
+				tree = mkastnode(A_GLUE, left, NULL, tree, 0);
+		}
 	}
+	return tree;
 }
