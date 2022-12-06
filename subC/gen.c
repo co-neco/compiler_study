@@ -5,9 +5,42 @@
 
 #include "gen.h"
 
-int genAST(struct ASTnode* n, int reg) {
+static int label() {
+	static int label = 0;
+	return label++;
+}
 
+void parse_file() {
+    struct ASTnode* tree;
+    
+    scan(&g_token);
+    genpreamble();
+    tree = compound_statement();
+    genAST(tree, -1);
+    genpostamble();
+    fclose(g_outfile);
+}
+
+int genAST(struct ASTnode* n, int reg, int parentop) {
 	int leftreg, rightreg;
+	int condreg, truereg, falsereg;
+
+	if (n->op == A_IF) {
+
+		int lbegin = label();
+		int lmid = label();
+		int lend = label();
+
+		condreg = genAST(n->left, -1, n->op, lmid);
+
+
+
+
+		truereg = genAST(n->mid, -1, -1);
+		falsereg = genAST(n->right, -1, -1);
+
+		cglabel()
+	}
 
 	if (n->left)
 		leftreg = genAST(n->left, -1);
@@ -31,8 +64,6 @@ int genAST(struct ASTnode* n, int reg) {
 		return cgstoreglob(reg, Gsym[n->v.id].name);
 	case A_ASSIGN:
 		return rightreg;
-	case A_IF:
-		break;
 	case A_EQ:
 		return cgequal(leftreg, rightreg);
 	case A_NE:

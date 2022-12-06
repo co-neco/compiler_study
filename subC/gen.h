@@ -1,6 +1,7 @@
 #pragma once
 
-int genAST(struct ASTnode* n, int reg);
+void parse_file();
+int genAST(struct ASTnode* n, int reg, int parentop);
 void genpreamble();
 void genpostamble();
 void genfreeregs();

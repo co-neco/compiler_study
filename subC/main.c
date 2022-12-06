@@ -50,11 +50,6 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    scan(&g_token);
-    genpreamble();
-    statements();
-    genpostamble();
-    fclose(g_outfile);
-    
+    parse_file();
     return 0;
 }
