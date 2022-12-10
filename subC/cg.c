@@ -110,17 +110,28 @@ void cgglobsym(char* sym) {
 	fprintf(g_outfile, "\t.comm\t%s,8,8\n", sym);
 }
 
-static int cgcompare(int r1, int r2, char* how) {
+static const char* setx[] = { "sete", "setne", "setl", "setg", "setle", "setge" };
+static const char* jumpx[] = { "jne", "je", "jge", "jle", "jg", "jl" };
+
+int cgcompare(int r1, int r2, int op) {
 	fprintf(g_outfile, "\tcmpq\t%s, %s\n", reglist[r2], reglist[r1]);
-	fprintf(g_outfile, "\t%s\t%s\n", how, breglist[r2]);
-	fprintf(g_outfile, "\tandq\t$255, %s\n", reglist[r2]);
+	fprintf(g_outfile, "\t%s\t%s\n", setx[op - A_EQ], breglist[r2]);
+	fprintf(g_outfile, "\tmovzbq\t%s, %s\n", breglist[r2], reglist[2]);
 	free_register(r1);
 	return r2;
 }
 
-int cgequal(int r1, int r2) { return cgcompare(r1, r2, "sete"); }
-int cgnotequal(int r1, int r2) { return cgcompare(r1, r2, "setne"); }
-int cglessthan(int r1, int r2) { return cgcompare(r1, r2, "setl"); }
-int cggreaterthan(int r1, int r2) { return cgcompare(r1, r2, "setg"); }
-int cglessequal(int r1, int r2) { return cgcompare(r1, r2, "setle"); }
-int cggreaterequal(int r1, int r2) { return cgcompare(r1, r2, "setge"); }
+void cgifcompare(int r1, int r2, int op, int label) {
+	fprintf(g_outfile, "\tcmpq\t%s, %s\n", reglist[r2], reglist[r1]);
+	fprintf(g_outfile, "\t%s\t.label:%d\n", jumpx[op - A_EQ], label);
+	free_register(r1);
+	free_register(r2);
+}
+
+int cglabel(int label) {
+	fprintf(g_outfile, "\t.label:%d\n", label);	
+}
+
+int cgjump(int label) {
+	fprintf(g_outfile, "\tjmp\t.label:%d\n", label);
+}

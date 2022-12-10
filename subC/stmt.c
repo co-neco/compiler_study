@@ -9,8 +9,7 @@
 
 #include "stmt.h"
 
-struct ASTnode *print_statement()
-{
+struct ASTnode *print_statement() {
 	struct ASTnode *tree;
 
 	match(T_PRINT, "print");
@@ -19,8 +18,7 @@ struct ASTnode *print_statement()
 	return tree;
 }
 
-void var_declaration(void)
-{
+void var_declaration(void) {
 
 	// Ensure we have an 'int' token followed by an identifier
 	// and a semicolon. Text now has the identifier's name.
@@ -32,8 +30,7 @@ void var_declaration(void)
 	semi();
 }
 
-struct ASTnode *assignment_statement()
-{
+struct ASTnode *assignment_statement() {
 
 	struct ASTnode *left, *right, *tree;
 	int id;
@@ -53,8 +50,7 @@ struct ASTnode *assignment_statement()
 	return tree;
 }
 
-struct ASTnode *if_statement()
-{
+struct ASTnode *if_statement() {
 	struct ASTnode *tree, *cond, *true, *false = NULL;
 
 	match(T_IF, "if");
@@ -75,8 +71,7 @@ struct ASTnode *if_statement()
 	return mkastnode(A_IF, cond, true, false, 0);
 }
 
-struct ASTnode *compound_statement()
-{
+struct ASTnode *compound_statement() {
 	struct ASTnode *left = NULL;
 	struct ASTnode *tree;
 

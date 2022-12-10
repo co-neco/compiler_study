@@ -6,7 +6,7 @@
 #include "gen.h"
 
 static int label() {
-	static int label = 0;
+	static int label = 1;
 	return label++;
 }
 
@@ -16,36 +16,65 @@ void parse_file() {
     scan(&g_token);
     genpreamble();
     tree = compound_statement();
-    genAST(tree, -1);
+    genAST(tree, -1, -1);
     genpostamble();
     fclose(g_outfile);
 }
 
-int genAST(struct ASTnode* n, int reg, int parentop) {
-	int leftreg, rightreg;
+static void genifAST(struct ASTnode* n) {
 	int condreg, truereg, falsereg;
+	int lend, lfalse;
 
-	if (n->op == A_IF) {
+	if (n->right != NULL) {
+		lfalse = label();
+		lend = label();
 
-		int lbegin = label();
-		int lmid = label();
-		int lend = label();
+		genAST(n->left, lfalse, A_IF);
+		freeall_registers();
+		
+		genAST(n->mid, -1, -1);
+		freeall_registers();
+		cgjump(lend);
 
-		condreg = genAST(n->left, -1, n->op, lmid);
+		cglabel(lfalse);
+		falsereg = genAST(n->right, -1, -1);
+		freeall_registers();
+	}
+	else {
+		lend = label();
 
-
-
+		condreg = genAST(n->left, lend, A_IF);
+		freeall_registers();
 
 		truereg = genAST(n->mid, -1, -1);
-		falsereg = genAST(n->right, -1, -1);
+		freeall_registers();
+	}
+	cglabel(lend);
+}
 
-		cglabel()
+static void genglueAST(struct ASTnode* n) {
+	genAST(n->left, -1, -1);
+	freeall_registers();
+	genAST(n->right, -1, -1);
+	freeall_registers();
+}
+
+int genAST(struct ASTnode* n, int reg, int parentop) {
+	int leftreg, rightreg;
+
+	if (n->op == A_IF) {
+		genifAST(n);
+		return -1;
+	}
+	else if (n->op == A_GLUE) {
+		genglueAST(n);
+		return -1;
 	}
 
 	if (n->left)
-		leftreg = genAST(n->left, -1);
+		leftreg = genAST(n->left, -1, -1);
 	if (n->right)
-		rightreg = genAST(n->right, leftreg);
+		rightreg = genAST(n->right, leftreg, -1);
 
 	switch (n->op) {
 	case A_ADD:
@@ -65,17 +94,18 @@ int genAST(struct ASTnode* n, int reg, int parentop) {
 	case A_ASSIGN:
 		return rightreg;
 	case A_EQ:
-		return cgequal(leftreg, rightreg);
 	case A_NE:
-		return cgnotequal(leftreg, rightreg);
 	case A_LT:
-		return cglessthan(leftreg, rightreg);
 	case A_GT:
-		return cggreaterthan(leftreg, rightreg);
 	case A_LE:
-		return cglessequal(leftreg, rightreg);
 	case A_GE:
-		return cggreaterequal(leftreg, rightreg);
+		if (parentop == A_IF) {
+			cgifcompare(leftreg, rightreg, n->op, reg);
+			return -1;
+		}
+		else
+			return cgcompare(leftreg, rightreg, n->op);
+		break;
 	default:
 		fatald("Unknown AST operator", n->op);
 	}
