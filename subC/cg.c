@@ -123,15 +123,15 @@ int cgcompare(int r1, int r2, int op) {
 
 void cgifcompare(int r1, int r2, int op, int label) {
 	fprintf(g_outfile, "\tcmpq\t%s, %s\n", reglist[r2], reglist[r1]);
-	fprintf(g_outfile, "\t%s\t.label:%d\n", jumpx[op - A_EQ], label);
+	fprintf(g_outfile, "\t%s\tL%d\n", jumpx[op - A_EQ], label);
 	free_register(r1);
 	free_register(r2);
 }
 
 int cglabel(int label) {
-	fprintf(g_outfile, "\t.label:%d\n", label);	
+	fprintf(g_outfile, "L%d:\n", label);
 }
 
 int cgjump(int label) {
-	fprintf(g_outfile, "\tjmp\t.label:%d\n", label);
+	fprintf(g_outfile, "\tjmp\tL%d\n", label);
 }

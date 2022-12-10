@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CLionExternalBuildManager">
+    <target id="bc24ca19-5f32-40e8-b36e-bc2506369063" name="subC" defaultType="MAKE">
+      <configuration id="2c2d5a0c-d6c3-415d-8e6d-76926de8edec" name="subC">
+        <build type="MAKE">
+          <make targetName="comp1" />
+        </build>
+        <clean type="MAKE">
+          <make targetName="clean" />
+        </clean>
+      </configuration>
+    </target>
+  </component>
+</project>

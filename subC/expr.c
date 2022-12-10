@@ -4,7 +4,6 @@
 #include "tree.h"
 #include "sym.h"
 #include "scan.h"
-#include "gen.h"
 
 #include "expr.h"
 
@@ -65,7 +64,7 @@ struct ASTnode* binexpr(int prevprec) {
 	left = primary();
 
 	tokentype = g_token.token;
-	if (tokentype == T_SEMI)
+	if (tokentype == T_SEMI || tokentype == T_RPARENT)
 		return left;
 
 	while (op_precedence(tokentype) > prevprec) {
@@ -75,7 +74,7 @@ struct ASTnode* binexpr(int prevprec) {
 		left = mkastnode(arithop(tokentype), left, NULL, right, 0);
 
 		tokentype = g_token.token;
-		if (tokentype == T_SEMI)
+		if (tokentype == T_SEMI || tokentype == T_RPARENT)
 			return left;
 	}
 

@@ -27,8 +27,8 @@ enum {
     // The order must be the same as token's enum
     A_ADD = 1, A_SUBSTRACT, A_MULTIPLY, A_DIVIDE, 
     A_EQ, A_NE, A_LT, A_GT, A_LE, A_GE, 
-    A_INTLIT, 
-    A_IDENT, A_LVIDENT, A_ASSIGN, A_IF, A_GLUE 
+    A_INTLIT, A_IDENT, A_LVIDENT, A_ASSIGN,
+    A_PRINT, A_IF, A_GLUE
 };
 
 struct ASTnode {

@@ -9,12 +9,25 @@
 
 #include "stmt.h"
 
+void parse_file() {
+    struct ASTnode* tree;
+    
+    scan(&g_token);
+    genpreamble();
+    tree = compound_statement();
+    genAST(tree, -1, -1);
+    genpostamble();
+    fclose(g_outfile);
+}
+
 struct ASTnode *print_statement() {
-	struct ASTnode *tree;
+	struct ASTnode *expr, *tree;
 
 	match(T_PRINT, "print");
-	tree = binexpr(0);
+	expr = binexpr(0);
 	semi();
+
+    tree = mkastunary(A_PRINT, expr, 0);
 	return tree;
 }
 
@@ -89,17 +102,19 @@ struct ASTnode *compound_statement() {
 			tree = NULL;
 			break;
 		case T_IDENT:
-			tree = assignment_statment();
+			tree = assignment_statement();
 			break;
 		case T_IF:
 			tree = if_statement();
+            break;
 		case T_RBRACE:
 			rbrace();
 			return left;
 		case T_EOF:
-			return;
+			return NULL;
 		default:
 			fatald("Syntax error, token", g_token.token);
+            return NULL;
 		}
 
 		if (tree != NULL)
@@ -107,8 +122,7 @@ struct ASTnode *compound_statement() {
 			if (left == NULL)
 				left = tree;
 			else
-				tree = mkastnode(A_GLUE, left, NULL, tree, 0);
+				left = mkastnode(A_GLUE, left, NULL, tree, 0);
 		}
 	}
-	return tree;
 }

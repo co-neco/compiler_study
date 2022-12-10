@@ -2,12 +2,10 @@
 #define extern_
 #include "data.h"
 #undef extern_
-#include "scan.h"
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
 
-#include "gen.h"
 #include "stmt.h"
 
 static void init() {
@@ -17,19 +15,6 @@ static void init() {
 
 static void usage(char* prog) {
     fprintf(stderr, "Usage: %s infile\n", prog);
-}
-
-char *tokenString[] = {"+", "-", "*", "/", "intlit"};
-
-static void scanfile() {
-    struct token t;
-
-    while(scan(&t)) {
-        printf("Token %s", tokenString[t.token]);
-        if (t.token == T_INTLIT)
-            printf(", value %d", t.intvalue);
-        printf("\n");
-    }
 }
 
 int main(int argc, char* argv[]) {

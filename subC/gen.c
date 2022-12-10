@@ -10,17 +10,6 @@ static int label() {
 	return label++;
 }
 
-void parse_file() {
-    struct ASTnode* tree;
-    
-    scan(&g_token);
-    genpreamble();
-    tree = compound_statement();
-    genAST(tree, -1, -1);
-    genpostamble();
-    fclose(g_outfile);
-}
-
 static void genifAST(struct ASTnode* n) {
 	int condreg, truereg, falsereg;
 	int lend, lfalse;
@@ -93,6 +82,9 @@ int genAST(struct ASTnode* n, int reg, int parentop) {
 		return cgstoreglob(reg, Gsym[n->v.id].name);
 	case A_ASSIGN:
 		return rightreg;
+    case A_PRINT:
+        genprintint(leftreg);
+        return -1;
 	case A_EQ:
 	case A_NE:
 	case A_LT:
