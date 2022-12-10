@@ -10,8 +10,7 @@ static int label() {
 	return label++;
 }
 
-static void genifAST(struct ASTnode* n) {
-	int condreg, truereg, falsereg;
+static void genIfAST(struct ASTnode* n) {
 	int lend, lfalse;
 
 	if (n->right != NULL) {
@@ -41,7 +40,20 @@ static void genifAST(struct ASTnode* n) {
 	cglabel(lend);
 }
 
-static void genglueAST(struct ASTnode* n) {
+static void genWhileAST(struct ASTnode* n) {
+    int lbegin = label();
+    int lend = label();
+
+    cglabel(lbegin);
+    cond = genAST(n->left, lend, A_WHILE);
+
+    stmts = genAST(n->mid, -1, -1);
+    cgjump(lbegin);
+
+    cglabel(lend);
+}
+
+static void genGlueAST(struct ASTnode* n) {
 	genAST(n->left, -1, -1);
 	freeall_registers();
 	genAST(n->right, -1, -1);
@@ -51,14 +63,17 @@ static void genglueAST(struct ASTnode* n) {
 int genAST(struct ASTnode* n, int reg, int parentop) {
 	int leftreg, rightreg;
 
-	if (n->op == A_IF) {
-		genifAST(n);
-		return -1;
-	}
-	else if (n->op == A_GLUE) {
-		genglueAST(n);
-		return -1;
-	}
+    switch (n->op) {
+        case A_IF:
+            genIfAST(n);
+            return -1;
+        case A_WHILE:
+            genWhileAST(n);
+            return -1;
+        case A_GLUE:
+            genGlueAST(n);
+            return -1;
+    }
 
 	if (n->left)
 		leftreg = genAST(n->left, -1, -1);
@@ -92,12 +107,14 @@ int genAST(struct ASTnode* n, int reg, int parentop) {
 	case A_LE:
 	case A_GE:
 		if (parentop == A_IF) {
-			cgifcompare(leftreg, rightreg, n->op, reg);
+            cgcondcompare(leftreg, rightreg, n->op, reg);
 			return -1;
 		}
+        else if (parentop == A_WHILE) {
+            cgcondcompare(leftreg, rightreg, n->op, reg);
+        }
 		else
 			return cgcompare(leftreg, rightreg, n->op);
-		break;
 	default:
 		fatald("Unknown AST operator", n->op);
 	}
@@ -112,10 +129,6 @@ void genpreamble() {
 
 void genpostamble() {
 	cgpostamble();
-}
-
-void genfreeregs() {
-	freeall_registers();
 }
 
 void genprintint(int reg) {

@@ -14,7 +14,7 @@ int cgstoreglob(int r, char* identifier);
 void cgglobsym(char* sym);
 
 int cgcompare(int r1, int r2, int op);
-void cgifcompare(int r1, int r2, int op, int label);
+void cgcondcompare(int r1, int r2, int op, int label);
 
 int cglabel(int label);
 int cgjump(int label);

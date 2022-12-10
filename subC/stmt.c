@@ -20,18 +20,18 @@ void parse_file() {
     fclose(g_outfile);
 }
 
-struct ASTnode *print_statement() {
-	struct ASTnode *expr, *tree;
+static struct ASTnode* print_statement() {
+    struct ASTnode *expr, *tree;
 
-	match(T_PRINT, "print");
-	expr = binexpr(0);
-	semi();
+    match(T_PRINT, "print");
+    expr = binexpr(0);
+    semi();
 
     tree = mkastunary(A_PRINT, expr, 0);
-	return tree;
+    return tree;
 }
 
-void var_declaration(void) {
+static void var_declaration(void) {
 
 	// Ensure we have an 'int' token followed by an identifier
 	// and a semicolon. Text now has the identifier's name.
@@ -43,27 +43,27 @@ void var_declaration(void) {
 	semi();
 }
 
-struct ASTnode *assignment_statement() {
+static struct ASTnode* assignment_statement() {
 
-	struct ASTnode *left, *right, *tree;
-	int id;
+    struct ASTnode *left, *right, *tree;
+    int id;
 
-	ident();
+    ident();
 
-	if ((id = findglob(g_identtext)) == -1)
-		fatals("Undeclared variable", g_identtext);
+    if ((id = findglob(g_identtext)) == -1)
+        fatals("Undeclared variable", g_identtext);
 
-	right = mkastleaf(A_LVIDENT, id);
-	match(T_ASSIGN, "=");
-	left = binexpr(0);
+    right = mkastleaf(A_LVIDENT, id);
+    match(T_ASSIGN, "=");
+    left = binexpr(0);
 
-	tree = mkastnode(A_ASSIGN, left, NULL, right, 0);
+    tree = mkastnode(A_ASSIGN, left, NULL, right, 0);
 
-	semi();
-	return tree;
+    semi();
+    return tree;
 }
 
-struct ASTnode *if_statement() {
+static struct ASTnode* if_statement() {
 	struct ASTnode *tree, *cond, *true, *false = NULL;
 
 	match(T_IF, "if");
@@ -84,37 +84,51 @@ struct ASTnode *if_statement() {
 	return mkastnode(A_IF, cond, true, false, 0);
 }
 
+static struct ASTnode* while_statement() {
+    ASTnode *tree, *cond;
+
+    match(T_WHILE, "while");
+    lparent();
+
+    cond = binexpr(0);
+    rparent();
+
+    ASTnode* stmts = compound_statement();
+    return mkastnode(A_WHILE, cond, stmts, NULL, 0);
+}
+
 struct ASTnode *compound_statement() {
 	struct ASTnode *left = NULL;
 	struct ASTnode *tree;
 
 	lbrace();
 
-	while (1)
-	{
-		switch (g_token.token)
-		{
-		case T_PRINT:
-			tree = print_statement();
-			break;
-		case T_INT:
-			var_declaration();
-			tree = NULL;
-			break;
-		case T_IDENT:
-			tree = assignment_statement();
-			break;
-		case T_IF:
-			tree = if_statement();
-            break;
-		case T_RBRACE:
-			rbrace();
-			return left;
-		case T_EOF:
-			return NULL;
-		default:
-			fatald("Syntax error, token", g_token.token);
-            return NULL;
+	while (1) {
+		switch (g_token.token) {
+            case T_PRINT:
+                tree = print_statement();
+                break;
+            case T_INT:
+                var_declaration();
+                tree = NULL;
+                break;
+            case T_IDENT:
+                tree = assignment_statement();
+                break;
+            case T_IF:
+                tree = if_statement();
+                break;
+            case T_WHILE:
+                tree = while_statement();
+                break;
+            case T_RBRACE:
+                rbrace();
+                return left;
+            case T_EOF:
+                return NULL;
+            default:
+                fatald("Syntax error, token", g_token.token);
+                return NULL;
 		}
 
 		if (tree != NULL)

@@ -121,7 +121,7 @@ int cgcompare(int r1, int r2, int op) {
 	return r2;
 }
 
-void cgifcompare(int r1, int r2, int op, int label) {
+void cgcondcompare(int r1, int r2, int op, int label) {
 	fprintf(g_outfile, "\tcmpq\t%s, %s\n", reglist[r2], reglist[r1]);
 	fprintf(g_outfile, "\t%s\tL%d\n", jumpx[op - A_EQ], label);
 	free_register(r1);

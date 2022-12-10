@@ -78,18 +78,22 @@ static int scanident(int c, char* buf, int lim) {
 
 static int keyword(char* ident) {
     switch (*ident) {
-    case 'i':
-        if (!strcmp(ident, "int"))
-            return T_INT;
-        else if (!strcmp(ident, "if"))
-            return T_IF;
-    case 'p':
-        if(!strcmp(ident, "print"))
-            return T_PRINT;
-    case 'e':
-        if (!strcmp(ident, "else"))
-            return T_ELSE;
+        case 'i':
+            if (!strcmp(ident, "int"))
+                return T_INT;
+            else if (!strcmp(ident, "if"))
+                return T_IF;
+        case 'p':
+            if(!strcmp(ident, "print"))
+                return T_PRINT;
+        case 'e':
+            if (!strcmp(ident, "else"))
+                return T_ELSE;
+        case 'w':
+            if (!strcmp(ident, "while"))
+                return T_WHILE;
     }
+    // Here, 0 just means false, not T_EOF
     return 0;
 } 
 

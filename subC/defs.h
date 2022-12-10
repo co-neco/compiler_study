@@ -5,17 +5,18 @@
 
 // Token types
 enum {
+    // fixed order
     T_EOF, 
     T_PLUS, T_MINUS, 
     T_STAR, T_SLASH, 
     T_EQ, T_NE, T_LT, T_GT, T_LE, T_GE,
     T_INTLIT, T_SEMI, T_ASSIGN, T_IDENT,
 
-    // random tokens
+    // random order
     T_LBRACE, T_RBRACE, T_LPARENT, T_RPARENT,
 
     // Keywords
-    T_PRINT, T_INT, T_IF, T_ELSE
+    T_PRINT, T_INT, T_IF, T_ELSE, T_WHILE
 };
 
 struct token {
@@ -28,7 +29,7 @@ enum {
     A_ADD = 1, A_SUBSTRACT, A_MULTIPLY, A_DIVIDE, 
     A_EQ, A_NE, A_LT, A_GT, A_LE, A_GE, 
     A_INTLIT, A_IDENT, A_LVIDENT, A_ASSIGN,
-    A_PRINT, A_IF, A_GLUE
+    A_PRINT, A_IF, A_WHIL, A_GLUE
 };
 
 struct ASTnode {
