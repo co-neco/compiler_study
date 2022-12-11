@@ -25,16 +25,16 @@ static void genIfAST(struct ASTnode* n) {
 		cgjump(lend);
 
 		cglabel(lfalse);
-		falsereg = genAST(n->right, -1, -1);
+		genAST(n->right, -1, -1);
 		freeall_registers();
 	}
 	else {
 		lend = label();
 
-		condreg = genAST(n->left, lend, A_IF);
+		genAST(n->left, lend, A_IF);
 		freeall_registers();
 
-		truereg = genAST(n->mid, -1, -1);
+		genAST(n->mid, -1, -1);
 		freeall_registers();
 	}
 	cglabel(lend);
@@ -45,9 +45,9 @@ static void genWhileAST(struct ASTnode* n) {
     int lend = label();
 
     cglabel(lbegin);
-    cond = genAST(n->left, lend, A_WHILE);
+    genAST(n->left, lend, A_WHILE);
 
-    stmts = genAST(n->mid, -1, -1);
+    genAST(n->mid, -1, -1);
     cgjump(lbegin);
 
     cglabel(lend);
@@ -106,13 +106,10 @@ int genAST(struct ASTnode* n, int reg, int parentop) {
 	case A_GT:
 	case A_LE:
 	case A_GE:
-		if (parentop == A_IF) {
+		if (parentop == A_IF || parentop == A_WHILE) {
             cgcondcompare(leftreg, rightreg, n->op, reg);
 			return -1;
 		}
-        else if (parentop == A_WHILE) {
-            cgcondcompare(leftreg, rightreg, n->op, reg);
-        }
 		else
 			return cgcompare(leftreg, rightreg, n->op);
 	default:

@@ -85,7 +85,7 @@ static struct ASTnode* if_statement() {
 }
 
 static struct ASTnode* while_statement() {
-    ASTnode *tree, *cond;
+    struct ASTnode *tree, *cond;
 
     match(T_WHILE, "while");
     lparent();
@@ -93,7 +93,7 @@ static struct ASTnode* while_statement() {
     cond = binexpr(0);
     rparent();
 
-    ASTnode* stmts = compound_statement();
+    struct ASTnode* stmts = compound_statement();
     return mkastnode(A_WHILE, cond, stmts, NULL, 0);
 }
 
