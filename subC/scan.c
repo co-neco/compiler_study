@@ -78,6 +78,12 @@ static int scanident(int c, char* buf, int lim) {
 
 static int keyword(char* ident) {
     switch (*ident) {
+        case 'e':
+            if (!strcmp(ident, "else"))
+                return T_ELSE;
+        case 'f':
+            if (!strcmp(ident, "for"))
+                return T_FOR;
         case 'i':
             if (!strcmp(ident, "int"))
                 return T_INT;
@@ -86,9 +92,6 @@ static int keyword(char* ident) {
         case 'p':
             if(!strcmp(ident, "print"))
                 return T_PRINT;
-        case 'e':
-            if (!strcmp(ident, "else"))
-                return T_ELSE;
         case 'w':
             if (!strcmp(ident, "while"))
                 return T_WHILE;

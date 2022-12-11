@@ -9,17 +9,6 @@
 
 #include "stmt.h"
 
-void parse_file() {
-    struct ASTnode* tree;
-    
-    scan(&g_token);
-    genpreamble();
-    tree = compound_statement();
-    genAST(tree, -1, -1);
-    genpostamble();
-    fclose(g_outfile);
-}
-
 static struct ASTnode* print_statement() {
     struct ASTnode *expr, *tree;
 
@@ -97,7 +86,11 @@ static struct ASTnode* while_statement() {
     return mkastnode(A_WHILE, cond, stmts, NULL, 0);
 }
 
-struct ASTnode *compound_statement() {
+static ASTnode* single_statement() {
+
+}
+
+struct ASTnode* compound_statement() {
 	struct ASTnode *left = NULL;
 	struct ASTnode *tree;
 

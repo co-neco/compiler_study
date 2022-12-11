@@ -1,12 +1,10 @@
-#include "defs.h"
 #define extern_
 #include "data.h"
 #undef extern_
 #include <errno.h>
 #include <string.h>
-#include <stdlib.h>
 
-#include "stmt.h"
+#include "parser.h"
 
 static void init() {
     g_line = 1;
