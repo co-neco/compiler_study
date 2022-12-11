@@ -40,7 +40,7 @@ static int skip() {
     int c;
 
     c = next();
-    while(' ' == c || '\t' == c || '\n' == c || '\r' == c || 'f' == c) {
+    while(' ' == c || '\t' == c || '\n' == c || '\r' == c || '\f' == c) {
         c = next();
     }
     return c;

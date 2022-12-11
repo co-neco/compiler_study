@@ -14,7 +14,6 @@ static struct ASTnode* print_statement() {
 
     match(T_PRINT, "print");
     expr = binexpr(0);
-    semi();
 
     tree = mkastunary(A_PRINT, expr, 0);
     return tree;
@@ -48,7 +47,6 @@ static struct ASTnode* assignment_statement() {
 
     tree = mkastnode(A_ASSIGN, left, NULL, right, 0);
 
-    semi();
     return tree;
 }
 
@@ -69,7 +67,7 @@ static struct ASTnode* if_statement() {
 		scan(&g_token);
 		false = compound_statement();
 	}
-	
+
 	return mkastnode(A_IF, cond, true, false, 0);
 }
 
@@ -86,8 +84,64 @@ static struct ASTnode* while_statement() {
     return mkastnode(A_WHILE, cond, stmts, NULL, 0);
 }
 
-static ASTnode* single_statement() {
+static struct ASTnode* for_statement() {
+    struct ASTnode* pre, *cond, *post;
 
+    match(T_FOR, "for");
+    lparent();
+
+    pre = single_statement();
+    semi();
+
+    cond = binexpr(0);
+    semi();
+
+    post = single_statement();
+    rparent();
+
+    struct ASTnode* comp = compound_statement();
+    if (comp == NULL)
+        fatal("for loop with empty statement");
+
+    struct ASTnode* tree = mkastnode(A_GLUE, comp, NULL, post, 0);
+    tree = mkastnode(A_WHILE, cond, tree, NULL, 0);
+    tree = mkastnode(A_GLUE, pre, NULL, tree, 0);
+    return tree;
+}
+
+struct ASTnode* single_statement() {
+    struct ASTnode* tree = NULL;
+
+    switch (g_token.token) {
+        case T_PRINT:
+            tree = print_statement();
+            break;
+        case T_INT:
+            var_declaration();
+            tree = NULL;
+            break;
+        case T_IDENT:
+            tree = assignment_statement();
+            break;
+        case T_IF:
+            tree = if_statement();
+            break;
+        case T_WHILE:
+            tree = while_statement();
+            break;
+        case T_FOR:
+            tree = for_statement();
+            break;
+        case T_RBRACE:
+            return NULL;
+        case T_EOF:
+            // exit current process
+            fatal("Incomplete compound statement");
+        default:
+            fatald("Syntax error, token", g_token.token);
+    }
+
+    return tree;
 }
 
 struct ASTnode* compound_statement() {
@@ -97,32 +151,17 @@ struct ASTnode* compound_statement() {
 	lbrace();
 
 	while (1) {
-		switch (g_token.token) {
-            case T_PRINT:
-                tree = print_statement();
-                break;
-            case T_INT:
-                var_declaration();
-                tree = NULL;
-                break;
-            case T_IDENT:
-                tree = assignment_statement();
-                break;
-            case T_IF:
-                tree = if_statement();
-                break;
-            case T_WHILE:
-                tree = while_statement();
-                break;
-            case T_RBRACE:
-                rbrace();
-                return left;
-            case T_EOF:
-                return NULL;
-            default:
-                fatald("Syntax error, token", g_token.token);
-                return NULL;
-		}
+        if (g_token.token == T_RBRACE) {
+            rbrace();
+            return left;
+        }
+
+        tree = single_statement();
+        if (tree == NULL)
+            continue;
+
+        if (tree->op == A_PRINT || tree->op == A_ASSIGN)
+            semi();
 
 		if (tree != NULL)
 		{

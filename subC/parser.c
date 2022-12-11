@@ -6,6 +6,7 @@
 #include "gen.h"
 #include "stmt.h"
 #include "scan.h"
+#include "misc.h"
 
 #include "parser.h"
 
@@ -15,6 +16,11 @@ void parse_file() {
     scan(&g_token);
     genpreamble();
     tree = compound_statement();
+
+    if (tree == NULL) {
+        fatal("AST tree is NULL");
+    }
+
     genAST(tree, -1, -1);
     genpostamble();
     fclose(g_outfile);
