@@ -172,3 +172,17 @@ struct ASTnode* compound_statement() {
 		}
 	}
 }
+
+struct ASTnode* function_declaration() {
+    struct ASTnode* tree;
+    int nameslot;
+
+    match(T_VOID, "void");
+    ident();
+    nameslot = addglob(g_identtext);
+    lparent();
+    rparent();
+
+    tree = compound_statement();
+    return mkastunary(A_FUNCTION, tree, nameslot);
+}

@@ -15,13 +15,15 @@ void parse_file() {
 
     scan(&g_token);
     genpreamble();
-    tree = compound_statement();
 
-    if (tree == NULL) {
-        fatal("AST tree is NULL");
+    while(1) {
+        tree = function_declaration();
+        if (tree == NULL) {
+            fatal("AST tree is NULL");
+        }
+
+        genAST(tree, -1, -1);
+        if (g_token.token == T_EOF)
+            break;
     }
-
-    genAST(tree, -1, -1);
-    genpostamble();
-    fclose(g_outfile);
 }

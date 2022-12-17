@@ -73,6 +73,11 @@ int genAST(struct ASTnode* n, int reg, int parentop) {
         case A_GLUE:
             genGlueAST(n);
             return -1;
+        case A_FUNCTION:
+            cgfuncpreamble(Gsym[n->v.id].name);
+            genAST(n->left, -1, -1);
+            cgfuncpostamble();
+            return -1;
     }
 
 	if (n->left)
@@ -81,39 +86,39 @@ int genAST(struct ASTnode* n, int reg, int parentop) {
 		rightreg = genAST(n->right, leftreg, -1);
 
 	switch (n->op) {
-	case A_ADD:
-		return cgadd(leftreg, rightreg);
-	case A_SUBSTRACT:
-		return cgsub(leftreg, rightreg);
-	case A_MULTIPLY:
-		return cgmul(leftreg, rightreg);
-	case A_DIVIDE:
-		return cgdiv(leftreg, rightreg);
-	case A_INTLIT:
-		return cgloadint(n->v.intvalue);
-	case A_IDENT:
-		return cgloadglob(Gsym[n->v.id].name);
-	case A_LVIDENT:
-		return cgstoreglob(reg, Gsym[n->v.id].name);
-	case A_ASSIGN:
-		return rightreg;
-    case A_PRINT:
-        genprintint(leftreg);
-        return -1;
-	case A_EQ:
-	case A_NE:
-	case A_LT:
-	case A_GT:
-	case A_LE:
-	case A_GE:
-		if (parentop == A_IF || parentop == A_WHILE) {
-            cgcondcompare(leftreg, rightreg, n->op, reg);
-			return -1;
-		}
-		else
-			return cgcompare(leftreg, rightreg, n->op);
-	default:
-		fatald("Unknown AST operator", n->op);
+        case A_ADD:
+            return cgadd(leftreg, rightreg);
+        case A_SUBSTRACT:
+            return cgsub(leftreg, rightreg);
+        case A_MULTIPLY:
+            return cgmul(leftreg, rightreg);
+        case A_DIVIDE:
+            return cgdiv(leftreg, rightreg);
+        case A_INTLIT:
+            return cgloadint(n->v.intvalue);
+        case A_IDENT:
+            return cgloadglob(Gsym[n->v.id].name);
+        case A_LVIDENT:
+            return cgstoreglob(reg, Gsym[n->v.id].name);
+        case A_ASSIGN:
+            return rightreg;
+        case A_PRINT:
+            genprintint(leftreg);
+            return -1;
+        case A_EQ:
+        case A_NE:
+        case A_LT:
+        case A_GT:
+        case A_LE:
+        case A_GE:
+            if (parentop == A_IF || parentop == A_WHILE) {
+                cgcondcompare(leftreg, rightreg, n->op, reg);
+                return -1;
+            }
+            else
+                return cgcompare(leftreg, rightreg, n->op);
+        default:
+            fatald("Unknown AST operator", n->op);
 	}
 
 	// Never comes here.

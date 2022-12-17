@@ -95,6 +95,9 @@ static int keyword(char* ident) {
         case 'w':
             if (!strcmp(ident, "while"))
                 return T_WHILE;
+        case 'v':
+            if (!strcmp(ident, "void"))
+                return T_VOID;
     }
     // Here, 0 just means false, not T_EOF
     return 0;

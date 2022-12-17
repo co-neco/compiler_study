@@ -34,5 +34,6 @@ int main(int argc, char* argv[]) {
     }
 
     parse_file();
+    fclose(g_outfile);
     return 0;
 }

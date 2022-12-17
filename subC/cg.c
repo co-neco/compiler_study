@@ -45,11 +45,7 @@ void cgpreamble() {
 		"\tcall	printf@PLT\n"
 		"\tnop\n"
 		"\tleave\n"
-		"\tret\n"
-		"\n"
-		"\t.globl\tmain\n"
-		"\t.type\tmain, @function\n"
-		"main:\n" "\tpushq\t%rbp\n" "\tmovq	%rsp, %rbp\n", g_outfile);
+		"\tret\n" "\n", g_outfile);
 }
 
 void cgpostamble() {
@@ -109,6 +105,20 @@ void cgprintint(int r) {
 void cgglobsym(char* sym) {
 	fprintf(g_outfile, "\t.comm\t%s,8,8\n", sym);
 }
+
+void cgfuncpreamble(char* sym) {
+    fprintf(g_outfile,
+            "\t.text\n"
+            "\t.globl\t%s\n"
+            "\t.type\t%s, @function\n"
+            "%s:\n\tpushq\t%%rbp\n"
+            "\tmovq\t%%rsp, %%rbp\n", sym, sym, sym);
+}
+
+void cgfuncpostamble() {
+    fputs("\tmovl $0, %eax\n" "\tpopq %rbp\n" "\tret\n", g_outfile);
+}
+
 
 static const char* setx[] = { "sete", "setne", "setl", "setg", "setle", "setge" };
 static const char* jumpx[] = { "jne", "je", "jge", "jle", "jg", "jl" };

@@ -13,6 +13,9 @@ void cgprintint(int r);
 int cgstoreglob(int r, char* identifier);
 void cgglobsym(char* sym);
 
+void cgfuncpreamble(char* sym);
+void cgfuncpostamble();
+
 int cgcompare(int r1, int r2, int op);
 void cgcondcompare(int r1, int r2, int op, int label);
 
