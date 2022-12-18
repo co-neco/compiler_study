@@ -4,31 +4,35 @@
 #include "tree.h"
 #include "sym.h"
 #include "scan.h"
+#include "types.h"
 
 #include "expr.h"
 
 static struct ASTnode* primary() {
 
-	struct ASTnode* n;
+	struct ASTnode* node;
 	int id;
 
 	switch (g_token.token) {
 	case T_INTLIT:
-		n = mkastleaf(A_INTLIT, g_token.intvalue);
+        if (g_token.intvalue >= 0 && g_token.intvalue < 256)
+            node = mkastleaf(A_INTLIT, P_CHAR, g_token.intvalue);
+        else
+            node = mkastleaf(A_INTLIT, P_INT, g_token.intvalue);
 		break;
 	case T_IDENT:
 		id = findglob(g_identtext);
 		if (id == -1)
 			fatals("Unknown variable", g_identtext);
 
-		n = mkastleaf(A_IDENT, id);
+            node = mkastleaf(A_IDENT, Gsym[id].type, id);
 		break;
 	default:
 		fatald("Syntax error, token", g_token.token);
 	}
 
 	scan(&g_token);
-	return n;
+	return node;
 }
 
 static int arithop(int tokentype) {
@@ -71,7 +75,17 @@ struct ASTnode* binexpr(int prevprec) {
 		scan(&g_token);
 
 		right = binexpr(opprec[tokentype]);
-		left = mkastnode(arithop(tokentype), left, NULL, right, 0);
+
+        int ltype = left->type;
+        int rtype = right->type;
+        type_compatibility_check(&ltype, &rtype, 0);
+
+        if (ltype)
+            left = mkastunary(ltype, right->type, left, 0);
+        if (rtype)
+            right = mkastunary(rtype, left->type, right, 0);
+
+		left = mkastnode(arithop(tokentype), left->type, left, NULL, right, 0);
 
 		tokentype = g_token.token;
 		if (tokentype == T_SEMI || tokentype == T_RPARENT)

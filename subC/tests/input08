@@ -5,3 +5,10 @@ void main()
     print i;
   }
 }
+
+void fred()
+{
+  int a; int b;
+  a= 12; b= 3 * a;
+  if (a >= b) { print 2 * b - a; }
+}

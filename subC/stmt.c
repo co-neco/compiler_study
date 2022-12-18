@@ -1,11 +1,12 @@
 #include "defs.h"
 #include "data.h"
+#include "decl.h"
 #include "misc.h"
-#include "gen.h"
 #include "expr.h"
 #include "tree.h"
 #include "sym.h"
 #include "scan.h"
+#include "types.h"
 
 #include "stmt.h"
 
@@ -15,20 +16,14 @@ static struct ASTnode* print_statement() {
     match(T_PRINT, "print");
     expr = binexpr(0);
 
-    tree = mkastunary(A_PRINT, expr, 0);
+    int ltype = P_INT;
+    int rtype = expr->type;
+    type_compatibility_check(&ltype, &rtype, 0);
+
+    if (rtype) expr = mkastunary(rtype, ltype, expr, 0);
+
+    tree = mkastunary(A_PRINT, P_NONE, expr, 0);
     return tree;
-}
-
-static void var_declaration(void) {
-
-	// Ensure we have an 'int' token followed by an identifier
-	// and a semicolon. Text now has the identifier's name.
-	// Add it as a known identifier
-	match(T_INT, "int");
-	ident();
-	addglob(g_identtext);
-	genglobsym(g_identtext);
-	semi();
 }
 
 static struct ASTnode* assignment_statement() {
@@ -41,11 +36,17 @@ static struct ASTnode* assignment_statement() {
     if ((id = findglob(g_identtext)) == -1)
         fatals("Undeclared variable", g_identtext);
 
-    right = mkastleaf(A_LVIDENT, id);
+    right = mkastleaf(A_LVIDENT, Gsym[id].type, id);
     match(T_ASSIGN, "=");
     left = binexpr(0);
 
-    tree = mkastnode(A_ASSIGN, left, NULL, right, 0);
+    int ltype = left->type;
+    int rtype = right->type;
+    type_compatibility_check(&ltype, &rtype, 1);
+
+    if (ltype) left = mkastunary(ltype, rtype, left, 0);
+
+    tree = mkastnode(A_ASSIGN, right->type, left, NULL, right, 0);
 
     return tree;
 }
@@ -68,7 +69,7 @@ static struct ASTnode* if_statement() {
 		false = compound_statement();
 	}
 
-	return mkastnode(A_IF, cond, true, false, 0);
+	return mkastnode(A_IF, P_NONE, cond, true, false, 0);
 }
 
 static struct ASTnode* while_statement() {
@@ -81,7 +82,7 @@ static struct ASTnode* while_statement() {
     rparent();
 
     struct ASTnode* stmts = compound_statement();
-    return mkastnode(A_WHILE, cond, stmts, NULL, 0);
+    return mkastnode(A_WHILE, P_NONE, cond, stmts, NULL, 0);
 }
 
 static struct ASTnode* for_statement() {
@@ -103,9 +104,9 @@ static struct ASTnode* for_statement() {
     if (comp == NULL)
         fatal("for loop with empty statement");
 
-    struct ASTnode* tree = mkastnode(A_GLUE, comp, NULL, post, 0);
-    tree = mkastnode(A_WHILE, cond, tree, NULL, 0);
-    tree = mkastnode(A_GLUE, pre, NULL, tree, 0);
+    struct ASTnode* tree = mkastnode(A_GLUE, P_NONE, comp, NULL, post, 0);
+    tree = mkastnode(A_WHILE, P_NONE, cond, tree, NULL, 0);
+    tree = mkastnode(A_GLUE, P_NONE, pre, NULL, tree, 0);
     return tree;
 }
 
@@ -117,6 +118,7 @@ struct ASTnode* single_statement() {
             tree = print_statement();
             break;
         case T_INT:
+        case T_CHAR:
             var_declaration();
             tree = NULL;
             break;
@@ -168,21 +170,7 @@ struct ASTnode* compound_statement() {
 			if (left == NULL)
 				left = tree;
 			else
-				left = mkastnode(A_GLUE, left, NULL, tree, 0);
+				left = mkastnode(A_GLUE, P_NONE, left, NULL, tree, 0);
 		}
 	}
-}
-
-struct ASTnode* function_declaration() {
-    struct ASTnode* tree;
-    int nameslot;
-
-    match(T_VOID, "void");
-    ident();
-    nameslot = addglob(g_identtext);
-    lparent();
-    rparent();
-
-    tree = compound_statement();
-    return mkastunary(A_FUNCTION, tree, nameslot);
 }

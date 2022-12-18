@@ -48,24 +48,26 @@ void cgpreamble() {
 		"\tret\n" "\n", g_outfile);
 }
 
-void cgpostamble() {
-	fputs("\tmovl $0, %eax\n" "\tpopq %rbp\n" "\tret\n", g_outfile);
-}
-
 int cgloadint(int value) {
 	int r = alloc_register();
 	fprintf(g_outfile, "\tmovq\t$%d, %s\n", value, reglist[r]);
 	return r;
 }
 
-int cgloadglob(char* identifier) {
+int cgloadglob(int id) {
 	int r = alloc_register();
-	fprintf(g_outfile, "\tmovq\t%s(%%rip), %s\n", identifier, reglist[r]);
+    if (Gsym[id].type == P_INT)
+	    fprintf(g_outfile, "\tmovq\t%s(%%rip), %s\n", Gsym[id].name, reglist[r]);
+    else
+        fprintf(g_outfile, "\tmovzbq\t%s(%%rip), %s\n", Gsym[id].name, reglist[r]);
 	return r;
 }
 
-int cgstoreglob(int r, char* identifier) {
-	fprintf(g_outfile, "\tmovq\t%s, %s(%%rip)\n", reglist[r], identifier);
+int cgstoreglob(int r, int id) {
+    if (Gsym[id].type == P_INT)
+	    fprintf(g_outfile, "\tmovq\t%s, %s(%%rip)\n", reglist[r], Gsym[id].name);
+    else
+        fprintf(g_outfile, "\tmovb\t%s, %s(%%rip)\n", breglist[r], Gsym[id].name);
 	return r;
 }
 
@@ -102,8 +104,11 @@ void cgprintint(int r) {
 	free_register(r);
 }
 
-void cgglobsym(char* sym) {
-	fprintf(g_outfile, "\t.comm\t%s,8,8\n", sym);
+void cgglobsym(int id) {
+    if (Gsym[id].type == P_INT)
+	    fprintf(g_outfile, "\t.comm\t%s,8,8\n", Gsym[id].name);
+    else if (Gsym[id].type == P_CHAR)
+        fprintf(g_outfile, "\t.comm\t%s,1,1\n", Gsym[id].name);
 }
 
 void cgfuncpreamble(char* sym) {
@@ -116,7 +121,7 @@ void cgfuncpreamble(char* sym) {
 }
 
 void cgfuncpostamble() {
-    fputs("\tmovl $0, %eax\n" "\tpopq %rbp\n" "\tret\n", g_outfile);
+    fputs("\tmovl $0, %eax\n" "\tpopq %rbp\n" "\tret\n\n", g_outfile);
 }
 
 
@@ -144,4 +149,9 @@ int cglabel(int label) {
 
 int cgjump(int label) {
 	fprintf(g_outfile, "\tjmp\tL%d\n", label);
+}
+
+int cgwiden(int r, int oldtype, int newtype) {
+    // Now no operation
+    return r;
 }

@@ -37,7 +37,7 @@ void rparent() {
 }
 
 int isarithop(int op) {
-	if (op >= T_EQ && op <= T_GT)
+	if (op >= T_EQ && op <= T_GE)
 		return 1;
 	else
 		return 0;

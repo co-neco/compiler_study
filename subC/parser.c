@@ -4,9 +4,9 @@
 #include "defs.h"
 #include "data.h"
 #include "gen.h"
-#include "stmt.h"
 #include "scan.h"
 #include "misc.h"
+#include "decl.h"
 
 #include "parser.h"
 

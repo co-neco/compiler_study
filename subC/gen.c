@@ -97,11 +97,13 @@ int genAST(struct ASTnode* n, int reg, int parentop) {
         case A_INTLIT:
             return cgloadint(n->v.intvalue);
         case A_IDENT:
-            return cgloadglob(Gsym[n->v.id].name);
+            return cgloadglob(n->v.id);
         case A_LVIDENT:
-            return cgstoreglob(reg, Gsym[n->v.id].name);
+            return cgstoreglob(reg, n->v.id);
         case A_ASSIGN:
             return rightreg;
+        case A_WIDEN:
+            return cgwiden(leftreg, n->left->type, n->type);
         case A_PRINT:
             genprintint(leftreg);
             return -1;
@@ -129,14 +131,10 @@ void genpreamble() {
 	cgpreamble();
 }
 
-void genpostamble() {
-	cgpostamble();
-}
-
 void genprintint(int reg) {
 	cgprintint(reg);
 }
 
-void genglobsym(char* sym) {
-	cgglobsym(sym);
+void genglobsym(int id) {
+	cgglobsym(id);
 }
