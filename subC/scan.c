@@ -95,6 +95,9 @@ static int keyword(char* ident) {
         case 'p':
             if(!strcmp(ident, "print"))
                 return T_PRINT;
+        case 'r':
+            if (!strcmp(ident, "return"))
+                return T_RETURN;
         case 'w':
             if (!strcmp(ident, "while"))
                 return T_WHILE;
@@ -104,11 +107,27 @@ static int keyword(char* ident) {
     }
     // Here, 0 just means false, not T_EOF
     return 0;
-} 
+}
+
+static struct token* g_restoretoken = NULL;
+
+void restore_token(struct token* token) {
+    if (g_restoretoken)
+        fatal("Can not restore one more token");
+
+    g_restoretoken = token;
+}
 
 int scan(struct token* t) {
 
     int tokentype;
+
+    if (g_restoretoken) {
+        t = g_restoretoken;
+        g_restoretoken = NULL;
+        return 1;
+    }
+
     int c = skip();
 
     switch (c) {

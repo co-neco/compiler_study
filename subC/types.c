@@ -2,6 +2,7 @@
 
 #include "defs.h"
 #include "misc.h"
+#include "gen.h"
 
 #include "types.h"
 
@@ -12,23 +13,25 @@ void type_compatibility_check(int* left, int* right, int only_right) {
         fatal("Invalid type parameter");
     }
 
-    if ((*left == P_VOID) || (*right == P_VOID)) {
-        snprintf(err_msg, 20, "t1:%d, t2:%d", *left, *right);
-        fatals("Incompatible types", err_msg);
-    }
-
     if (*left == *right) {
         *left = 0;
         *right = 0;
         return;
     }
 
-    if ((*left == P_CHAR) && (*right == P_INT)) {
+    int lsize = gprimsize(*left);
+    int rsize = gprimsize(*right);
+
+    if (lsize == 0 || rsize == 0)
+        fatal("type parameter's size is 0");
+
+    if (lsize < rsize){
         *left = A_WIDEN;
         *right = 0;
         return;
     }
-    else if ((*left == P_INT) && (*right == P_CHAR)) {
+
+    if (lsize > rsize) {
         if (only_right) {
             snprintf(err_msg, 20, "t1:%d->t2:%d", *left, *right);
             fatals("Type narrow error", err_msg);
@@ -39,8 +42,6 @@ void type_compatibility_check(int* left, int* right, int only_right) {
         return;
     }
 
-    // lecture returns true ??
-    // Other situations we totally return false
-    snprintf(err_msg, 20, "t1:%d, t2:%d", *left, *right);
-    fatals("Incompatible types", err_msg);
+    *left = 0;
+    *right = 0;
 }

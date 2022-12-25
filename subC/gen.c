@@ -5,7 +5,7 @@
 
 #include "gen.h"
 
-static int label() {
+int glabel() {
 	static int label = 1;
 	return label++;
 }
@@ -14,8 +14,8 @@ static void genIfAST(struct ASTnode* n) {
 	int lend, lfalse;
 
 	if (n->right != NULL) {
-		lfalse = label();
-		lend = label();
+		lfalse = glabel();
+		lend = glabel();
 
 		genAST(n->left, lfalse, A_IF);
 		freeall_registers();
@@ -29,7 +29,7 @@ static void genIfAST(struct ASTnode* n) {
 		freeall_registers();
 	}
 	else {
-		lend = label();
+		lend = glabel();
 
 		genAST(n->left, lend, A_IF);
 		freeall_registers();
@@ -41,13 +41,16 @@ static void genIfAST(struct ASTnode* n) {
 }
 
 static void genWhileAST(struct ASTnode* n) {
-    int lbegin = label();
-    int lend = label();
+    int lbegin = glabel();
+    int lend = glabel();
 
     cglabel(lbegin);
     genAST(n->left, lend, A_WHILE);
+    freeall_registers();
 
     genAST(n->mid, -1, -1);
+    freeall_registers();
+
     cgjump(lbegin);
 
     cglabel(lend);
@@ -63,6 +66,10 @@ static void genGlueAST(struct ASTnode* n) {
 int genAST(struct ASTnode* n, int reg, int parentop) {
 	int leftreg, rightreg;
 
+    // Empty AST
+    if (n == NULL)
+        return -1;
+
     switch (n->op) {
         case A_IF:
             genIfAST(n);
@@ -75,8 +82,9 @@ int genAST(struct ASTnode* n, int reg, int parentop) {
             return -1;
         case A_FUNCTION:
             cgfuncpreamble(Gsym[n->v.id].name);
-            genAST(n->left, -1, -1);
-            cgfuncpostamble();
+            genAST(n->left, -1, n->op);
+            freeall_registers();
+            cgfuncpostamble(n->v.id);
             return -1;
     }
 
@@ -95,17 +103,23 @@ int genAST(struct ASTnode* n, int reg, int parentop) {
         case A_DIVIDE:
             return cgdiv(leftreg, rightreg);
         case A_INTLIT:
-            return cgloadint(n->v.intvalue);
+            return cgloadint(n->v.intvalue, n->type);
         case A_IDENT:
             return cgloadglob(n->v.id);
         case A_LVIDENT:
             return cgstoreglob(reg, n->v.id);
         case A_ASSIGN:
             return rightreg;
+        case A_FUNCCALL:
+            return cgfunccall(leftreg, n->v.id);
+        case A_RETURN:
+            cgreturn(leftreg, n->v.id);
+            return -1;
         case A_WIDEN:
             return cgwiden(leftreg, n->left->type, n->type);
         case A_PRINT:
             genprintint(leftreg);
+            freeall_registers();
             return -1;
         case A_EQ:
         case A_NE:
@@ -137,4 +151,8 @@ void genprintint(int reg) {
 
 void genglobsym(int id) {
 	cgglobsym(id);
+}
+
+int gprimsize(int type) {
+    return cgprimsize(type);
 }

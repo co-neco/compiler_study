@@ -7,6 +7,9 @@
 static int freereg[4];
 static char* reglist[4] = { "%r8", "%r9", "%r10", "%r11" };
 static char* breglist[4] = { "%r8b", "%r9b", "%r10b", "%r11b" };
+static char* dreglist[4] = { "%r8d", "%r9d", "%r10d", "%r11d" };
+
+static int primsize[] = {0, 0, 1, 4, 8};
 
 void freeall_registers() {
 	freereg[0] = freereg[1] = freereg[2] = freereg[3] = 1;
@@ -30,25 +33,10 @@ static void free_register(int reg) {
 
 void cgpreamble() {
 	freeall_registers();
-	fputs("\t.text\n"
-		".LC0:\n"
-		"\t.string\t\"%d\\n\"\n"
-		"printint:\n"
-		"\tpushq\t%rbp\n"
-		"\tmovq\t%rsp, %rbp\n"
-		"\tsubq\t$16, %rsp\n"
-		"\tmovl\t%edi, -4(%rbp)\n"
-		"\tmovl\t-4(%rbp), %eax\n"
-		"\tmovl\t%eax, %esi\n"
-		"\tleaq	.LC0(%rip), %rdi\n"
-		"\tmovl	$0, %eax\n"
-		"\tcall	printf@PLT\n"
-		"\tnop\n"
-		"\tleave\n"
-		"\tret\n" "\n", g_outfile);
 }
 
-int cgloadint(int value) {
+// We leave the type cast to variable or return generation
+int cgloadint(int value, int type) {
 	int r = alloc_register();
 	fprintf(g_outfile, "\tmovq\t$%d, %s\n", value, reglist[r]);
 	return r;
@@ -56,18 +44,39 @@ int cgloadint(int value) {
 
 int cgloadglob(int id) {
 	int r = alloc_register();
-    if (Gsym[id].type == P_INT)
-	    fprintf(g_outfile, "\tmovq\t%s(%%rip), %s\n", Gsym[id].name, reglist[r]);
-    else
-        fprintf(g_outfile, "\tmovzbq\t%s(%%rip), %s\n", Gsym[id].name, reglist[r]);
+
+    switch (Gsym[id].type) {
+        case P_CHAR:
+            fprintf(g_outfile, "\tmovzbq\t%s(%%rip), %s\n", Gsym[id].name, reglist[r]);
+            break;
+        case P_INT:
+            fprintf(g_outfile, "\tmov\t%s(%%rip), %s\n", Gsym[id].name, breglist[r]);
+            break;
+        case P_LONG:
+            fprintf(g_outfile, "\tmovq\t%s(%%rip), %s\n", Gsym[id].name, reglist[r]);
+            break;
+        default:
+            fatald("Bad type in cgloadglob", Gsym[id].type);
+    }
 	return r;
 }
 
 int cgstoreglob(int r, int id) {
-    if (Gsym[id].type == P_INT)
-	    fprintf(g_outfile, "\tmovq\t%s, %s(%%rip)\n", reglist[r], Gsym[id].name);
-    else
-        fprintf(g_outfile, "\tmovb\t%s, %s(%%rip)\n", breglist[r], Gsym[id].name);
+
+
+    switch (Gsym[id].type) {
+        case P_CHAR:
+            fprintf(g_outfile, "\tmovb\t%s, %s(%%rip)\n", breglist[r], Gsym[id].name);
+            break;
+        case P_INT:
+            fprintf(g_outfile, "\tmovl\t%s, %s(%%rip)\n", dreglist[r], Gsym[id].name);
+            break;
+        case P_LONG:
+            fprintf(g_outfile, "\tmovq\t%s, %s(%%rip)\n", reglist[r], Gsym[id].name);
+            break;
+        default:
+            fatald("Bad type in cgstoreglob", Gsym[id].type);
+    }
 	return r;
 }
 
@@ -120,10 +129,39 @@ void cgfuncpreamble(char* sym) {
             "\tmovq\t%%rsp, %%rbp\n", sym, sym, sym);
 }
 
-void cgfuncpostamble() {
-    fputs("\tmovl $0, %eax\n" "\tpopq %rbp\n" "\tret\n\n", g_outfile);
+void cgfuncpostamble(int id) {
+    if (Gsym[id].type != P_VOID)
+        cglabel(Gsym[id].endlabel);
+    fputs("\tpopq %rbp\n" "\tret\n\n", g_outfile);
 }
 
+int cgfunccall(int r, int id) {
+    int r1 = alloc_register();
+
+    fprintf(g_outfile, "\tmovq\t%s, %%rdi\n", reglist[r]);
+    fprintf(g_outfile, "\tcall\t%s\n", Gsym[id].name);
+    fprintf(g_outfile, "\tmovq\t%%rax, %s\n", reglist[r1]);
+    free_register(r);
+    return r1;
+}
+
+void cgreturn(int r, int id) {
+
+    switch (Gsym[id].type) {
+        case P_CHAR:
+            fprintf(g_outfile, "\tmovzbl\t%s, %%eax\n", breglist[r]);
+            break;
+        case P_INT:
+            fprintf(g_outfile, "\tmovl\t%s, %%eax\n", dreglist[r]);
+            break;
+        case P_LONG:
+            fprintf(g_outfile, "\tmovq\t%s, %%rax\n", reglist[r]);
+        default:
+            fatald("bad type in cgreturn", Gsym[id].type);
+    }
+    cgjump(Gsym[id].endlabel);
+    free_register(r);
+}
 
 static const char* setx[] = { "sete", "setne", "setl", "setg", "setle", "setge" };
 static const char* jumpx[] = { "jne", "je", "jge", "jle", "jg", "jl" };
@@ -154,4 +192,10 @@ int cgjump(int label) {
 int cgwiden(int r, int oldtype, int newtype) {
     // Now no operation
     return r;
+}
+
+int cgprimsize(int type) {
+    if (type < P_NONE || type > P_LONG)
+        fatald("Bad type", type);
+    return primsize[type];
 }

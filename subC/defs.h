@@ -17,11 +17,11 @@ enum {
 
     // Keywords
     T_PRINT, T_INT, T_IF, T_ELSE, T_WHILE, T_FOR,
-    T_VOID, T_CHAR
+    T_VOID, T_CHAR, T_LONG, T_RETURN
 };
 
 enum {
-    P_VOID, P_INT, P_CHAR, P_NONE
+    P_NONE, P_VOID, P_CHAR, P_INT, P_LONG
 };
 
 struct token {
@@ -35,7 +35,7 @@ enum {
     A_EQ, A_NE, A_LT, A_GT, A_LE, A_GE, 
     A_INTLIT, A_IDENT, A_LVIDENT, A_ASSIGN,
     A_PRINT, A_IF, A_WHILE, A_GLUE, A_FUNCTION,
-    A_WIDEN
+    A_WIDEN, A_FUNCCALL, A_RETURN
 };
 
 struct ASTnode {
@@ -59,4 +59,5 @@ struct symtable {
     char* name;
     int type;
     int stype;
+    int endlabel;
 };

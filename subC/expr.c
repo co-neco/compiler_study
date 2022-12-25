@@ -5,6 +5,7 @@
 #include "sym.h"
 #include "scan.h"
 #include "types.h"
+#include "stmt.h"
 
 #include "expr.h"
 
@@ -25,7 +26,13 @@ static struct ASTnode* primary() {
 		if (id == -1)
 			fatals("Unknown variable", g_identtext);
 
-            node = mkastleaf(A_IDENT, Gsym[id].type, id);
+        scan(&g_token);
+        if (g_token.token == T_LPARENT) {
+            return funccall();
+        }
+
+        restore_token(&g_token);
+        node = mkastleaf(A_IDENT, Gsym[id].type, id);
 		break;
 	default:
 		fatald("Syntax error, token", g_token.token);
