@@ -143,6 +143,9 @@ int scan(struct token* t) {
         case '*':
             t->token = T_STAR;
             break;
+        case '&':
+            t->token = T_AMPER;
+            break;
         case '/':
             t->token = T_SLASH;
             break;

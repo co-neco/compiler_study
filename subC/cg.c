@@ -9,7 +9,7 @@ static char* reglist[4] = { "%r8", "%r9", "%r10", "%r11" };
 static char* breglist[4] = { "%r8b", "%r9b", "%r10b", "%r11b" };
 static char* dreglist[4] = { "%r8d", "%r9d", "%r10d", "%r11d" };
 
-static int primsize[] = {0, 0, 1, 4, 8};
+static int primsize[] = {0, 0, 1, 4, 8, 8, 8, 8};
 
 void freeall_registers() {
 	freereg[0] = freereg[1] = freereg[2] = freereg[3] = 1;
@@ -50,9 +50,12 @@ int cgloadglob(int id) {
             fprintf(g_outfile, "\tmovzbq\t%s(%%rip), %s\n", Gsym[id].name, reglist[r]);
             break;
         case P_INT:
-            fprintf(g_outfile, "\tmov\t%s(%%rip), %s\n", Gsym[id].name, breglist[r]);
+            fprintf(g_outfile, "\tmovl\t%s(%%rip), %s\n", Gsym[id].name, dreglist[r]);
             break;
         case P_LONG:
+        case P_CHARPTR:
+        case P_INTPTR:
+        case P_LONGPTR:
             fprintf(g_outfile, "\tmovq\t%s(%%rip), %s\n", Gsym[id].name, reglist[r]);
             break;
         default:
@@ -72,6 +75,9 @@ int cgstoreglob(int r, int id) {
             fprintf(g_outfile, "\tmovl\t%s, %s(%%rip)\n", dreglist[r], Gsym[id].name);
             break;
         case P_LONG:
+        case P_CHARPTR:
+        case P_INTPTR:
+        case P_LONGPTR:
             fprintf(g_outfile, "\tmovq\t%s, %s(%%rip)\n", reglist[r], Gsym[id].name);
             break;
         default:
@@ -114,10 +120,8 @@ void cgprintint(int r) {
 }
 
 void cgglobsym(int id) {
-    if (Gsym[id].type == P_INT)
-	    fprintf(g_outfile, "\t.comm\t%s,8,8\n", Gsym[id].name);
-    else if (Gsym[id].type == P_CHAR)
-        fprintf(g_outfile, "\t.comm\t%s,1,1\n", Gsym[id].name);
+    int typesize = cgprimsize(Gsym[id].type);
+    fprintf(g_outfile, "\t.comm\t%s,%d,%d\n", Gsym[id].name, typesize, typesize);
 }
 
 void cgfuncpreamble(char* sym) {
@@ -152,6 +156,7 @@ void cgreturn(int r, int id) {
             fprintf(g_outfile, "\tmovzbl\t%s, %%eax\n", breglist[r]);
             break;
         case P_INT:
+            // movl would set high 32bit of rax to 0
             fprintf(g_outfile, "\tmovl\t%s, %%eax\n", dreglist[r]);
             break;
         case P_LONG:
@@ -161,6 +166,33 @@ void cgreturn(int r, int id) {
     }
     cgjump(Gsym[id].endlabel);
     free_register(r);
+}
+
+int cgaddr(int id) {
+    int r = alloc_register();
+    fprintf(g_outfile, "\tleaq\t%s(%%rip), %s\n", Gsym[id].name, reglist[r]);
+    return r;
+}
+
+int cgderef(int r, int type) {
+
+    int r1 = alloc_register();
+
+    switch (type) {
+        case P_CHAR:
+            fprintf(g_outfile, "\tmovzbq\t(%s), %s\n", reglist[r], reglist[r1]);
+            break;
+        case P_INT:
+            fprintf(g_outfile, "\tmovl\t(%s), %s\n", reglist[r], dreglist[r1]);
+            break;
+        case P_LONG:
+            fprintf(g_outfile, "\tmovq\t(%s), %s\n", reglist[r], reglist[r1]);
+            break;
+        default:
+            fatald("Illegal derefernce type", type);
+    }
+    free_register(r);
+    return r1;
 }
 
 static const char* setx[] = { "sete", "setne", "setl", "setg", "setle", "setge" };
@@ -195,7 +227,7 @@ int cgwiden(int r, int oldtype, int newtype) {
 }
 
 int cgprimsize(int type) {
-    if (type < P_NONE || type > P_LONG)
+    if (type < P_NONE || type > P_LONGPTR)
         fatald("Bad type", type);
     return primsize[type];
 }

@@ -9,6 +9,39 @@
 
 #include "expr.h"
 
+static struct ASTnode* primary();
+
+static struct ASTnode* prefix() {
+
+    struct ASTnode* tree;
+
+    switch (g_token.token) {
+        case T_AMPER:
+            scan(&g_token);
+            tree = prefix();
+
+            if (tree->op != A_IDENT)
+                fatal("\'&\' operator must be followed by a identifier");
+
+            tree->op = A_ADDR;
+            tree->type = point_to(tree->type);
+            break;
+        case T_STAR:
+            scan(&g_token);
+            tree = prefix();
+
+            if (tree->op != A_IDENT && tree->op != A_DEREF)
+                fatal("\'*\' operator must be followed by a identifier or one another \'*\' operator");
+
+            tree = mkastunary(A_DEREF, value_at(tree->type), tree, 0);
+            break;
+        default:
+            tree = primary();
+    }
+
+    return tree;
+}
+
 static struct ASTnode* primary() {
 
 	struct ASTnode* node;
@@ -72,7 +105,7 @@ struct ASTnode* binexpr(int prevprec) {
 	struct ASTnode* left, *right;
 	int tokentype;
 
-	left = primary();
+	left = prefix();
 
 	tokentype = g_token.token;
 	if (tokentype == T_SEMI || tokentype == T_RPARENT)

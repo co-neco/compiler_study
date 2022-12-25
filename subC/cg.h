@@ -17,6 +17,9 @@ void cgfuncpostamble(int id);
 int cgfunccall(int r, int id);
 void cgreturn(int r, int id);
 
+int cgaddr(int id);
+int cgderef(int r, int type);
+
 int cgcompare(int r1, int r2, int op);
 void cgcondcompare(int r1, int r2, int op, int label);
 

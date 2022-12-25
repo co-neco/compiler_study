@@ -7,4 +7,7 @@
 
 void type_compatibility_check(int* left, int* right, int only_right);
 
+int point_to(int type);
+int value_at(int type);
+
 #endif //HOST_TYPES_H

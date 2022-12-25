@@ -106,6 +106,10 @@ int genAST(struct ASTnode* n, int reg, int parentop) {
             return cgloadint(n->v.intvalue, n->type);
         case A_IDENT:
             return cgloadglob(n->v.id);
+        case A_ADDR:
+            return cgaddr(n->v.id);
+        case A_DEREF:
+            return cgderef(leftreg, n->type);
         case A_LVIDENT:
             return cgstoreglob(reg, n->v.id);
         case A_ASSIGN:

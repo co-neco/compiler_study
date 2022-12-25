@@ -14,6 +14,7 @@ enum {
 
     // random order
     T_LBRACE, T_RBRACE, T_LPARENT, T_RPARENT,
+    T_AMPER,
 
     // Keywords
     T_PRINT, T_INT, T_IF, T_ELSE, T_WHILE, T_FOR,
@@ -21,7 +22,8 @@ enum {
 };
 
 enum {
-    P_NONE, P_VOID, P_CHAR, P_INT, P_LONG
+    P_NONE, P_VOID, P_CHAR, P_INT, P_LONG,
+    P_VOIDPTR, P_CHARPTR, P_INTPTR, P_LONGPTR
 };
 
 struct token {
@@ -35,7 +37,7 @@ enum {
     A_EQ, A_NE, A_LT, A_GT, A_LE, A_GE, 
     A_INTLIT, A_IDENT, A_LVIDENT, A_ASSIGN,
     A_PRINT, A_IF, A_WHILE, A_GLUE, A_FUNCTION,
-    A_WIDEN, A_FUNCCALL, A_RETURN
+    A_WIDEN, A_FUNCCALL, A_RETURN, A_ADDR, A_DEREF
 };
 
 struct ASTnode {

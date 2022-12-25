@@ -5,16 +5,40 @@
 #include "scan.h"
 #include "stmt.h"
 #include "tree.h"
-#include "gen.h"
+#include "types.h"
 
 #include "decl.h"
 
 static int parse_type(int token) {
-    if (token == T_VOID) return P_VOID;
-    if (token == T_CHAR) return P_CHAR;
-    if (token == T_INT) return P_INT;
-    if (token == T_LONG) return P_LONG;
-    fatald("Illegal type, token", token);
+
+    int primtype;
+
+    switch (token) {
+        case T_VOID:
+            primtype = P_VOID;
+            break;
+        case T_CHAR:
+            primtype = P_CHAR;
+            break;
+        case T_INT:
+            primtype = P_INT;
+            break;
+        case T_LONG:
+            primtype = P_LONG;
+            break;
+        default:
+            fatald("Illegal type, token", token);
+    }
+
+    while (1) {
+        scan(&g_token);
+        if (g_token.token != T_STAR)
+            break;
+
+        primtype = point_to(primtype);
+    }
+
+    return primtype;
 }
 
 static int is_last_return_statement(struct ASTnode* tree) {
@@ -37,7 +61,6 @@ void var_declaration() {
     // and a semicolon. Text now has the identifier's name.
     // Add it as a known identifier
     type = parse_type(g_token.token);
-    scan(&g_token);
     ident();
 
     symid = addglob(g_identtext, type, S_VARIABLE, 0);
@@ -50,8 +73,6 @@ struct ASTnode* function_declaration() {
     int id, type, endlabel;
 
     type = parse_type(g_token.token);
-
-    scan(&g_token);
     ident();
 
     endlabel = glabel();

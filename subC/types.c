@@ -45,3 +45,51 @@ void type_compatibility_check(int* left, int* right, int only_right) {
     *left = 0;
     *right = 0;
 }
+
+int point_to(int type) {
+
+    int totype;
+
+    switch (type) {
+        case P_VOID:
+            totype = P_VOIDPTR;
+            break;
+        case P_CHAR:
+            totype = P_CHARPTR;
+            break;
+        case P_INT:
+            totype = P_INTPTR;
+            break;
+        case P_LONG:
+            totype = P_LONGPTR;
+            break;
+        default:
+            fatald("Illegal primitive type", type);
+    }
+
+    return totype;
+}
+
+int value_at(int type) {
+
+    int attype;
+
+    switch (type) {
+        case P_VOIDPTR:
+            attype = P_VOID;
+            break;
+        case P_CHARPTR:
+            attype = P_CHAR;
+            break;
+        case P_INTPTR:
+            attype = P_INT;
+            break;
+        case P_LONGPTR:
+            attype = P_LONG;
+            break;
+        default:
+            fatald("Illegal pointer type", type);
+    }
+
+    return attype;
+}
