@@ -9,7 +9,7 @@
 
 #include "decl.h"
 
-static int parse_type(int token) {
+int parse_type(int token) {
 
     int primtype;
 
@@ -54,26 +54,28 @@ static int is_last_return_statement(struct ASTnode* tree) {
         return 0;
 }
 
-void var_declaration() {
-    int type, symid;
+void var_declaration(int type) {
+    int symid;
 
-    // Ensure we have an 'int' token followed by an identifier
-    // and a semicolon. Text now has the identifier's name.
-    // Add it as a known identifier
-    type = parse_type(g_token.token);
-    ident();
+    while(1) {
+        symid = addglob(g_identtext, type, S_VARIABLE, 0);
+        genglobsym(symid);
 
-    symid = addglob(g_identtext, type, S_VARIABLE, 0);
-    genglobsym(symid);
+        if (g_token.token != T_COMMA)
+            break;
+
+        // next identifier
+        scan(&g_token);
+        ident();
+        continue;
+    }
+
     semi();
 }
 
-struct ASTnode* function_declaration() {
+struct ASTnode* function_declaration(int type) {
     struct ASTnode* tree;
-    int id, type, endlabel;
-
-    type = parse_type(g_token.token);
-    ident();
+    int id, endlabel;
 
     endlabel = glabel();
     id = addglob(g_identtext, type, S_FUNCTION, endlabel);
@@ -93,4 +95,33 @@ struct ASTnode* function_declaration() {
     }
 
     return mkastunary(A_FUNCTION, P_VOID, tree, id);
+}
+
+void global_declaration() {
+
+    struct ASTnode* tree;
+
+    scan(&g_token);
+
+    while(1) {
+
+        int type = parse_type(g_token.token);
+        ident();
+
+        if (g_token.token == T_LPARENT) {
+
+            tree = function_declaration(type);
+            if (tree == NULL) {
+                fatal("AST tree is NULL");
+            }
+
+            genAST(tree, -1, -1);
+        }
+        else {
+            var_declaration(type);
+        }
+
+        if (g_token.token == T_EOF)
+            return;
+    }
 }

@@ -5,7 +5,7 @@ comp1: $(SRCS)
 clean:
 	rm -f comp1 *.o *.s out
 
-test: comp1 tests/input14 lib/printint.c
-	./comp1 tests/input14
+test: comp1 tests/input16.c lib/printint.c
+	./comp1 tests/input16.c
 	cc -o out out.s lib/printint.c
 	./out

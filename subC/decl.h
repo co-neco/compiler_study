@@ -7,7 +7,9 @@
 
 #include "defs.h"
 
-void var_declaration();
-struct ASTnode* function_declaration();
+int parse_type(int token);
+void var_declaration(int type);
+struct ASTnode* function_declaration(int type);
+void global_declaration();
 
 #endif //HOST_DECL_H

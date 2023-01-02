@@ -14,7 +14,7 @@ enum {
 
     // random order
     T_LBRACE, T_RBRACE, T_LPARENT, T_RPARENT,
-    T_AMPER,
+    T_AMPER, T_COMMA,
 
     // Keywords
     T_PRINT, T_INT, T_IF, T_ELSE, T_WHILE, T_FOR,

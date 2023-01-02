@@ -151,7 +151,10 @@ struct ASTnode* single_statement() {
             break;
         case T_INT:
         case T_CHAR:
-            var_declaration();
+            int type = parse_type(g_token.token);
+            ident();
+
+            var_declaration(type);
             tree = NULL;
             break;
         case T_IDENT:
