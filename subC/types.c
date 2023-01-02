@@ -6,44 +6,64 @@
 
 #include "types.h"
 
-void type_compatibility_check(int* left, int* right, int only_right) {
-    char err_msg[20] = {0};
+int is_inttype(int type) {
+    if (type >= P_CHAR && type <= P_LONG)
+        return 1;
+    else
+        return 0;
+}
 
-    if (left == NULL || right == NULL){
-        fatal("Invalid type parameter");
+int is_ptrtype(int type) {
+    if (type >= P_VOIDPTR && type <= P_LONGPTR)
+        return 1;
+    else
+        return 0;
+}
+
+struct ASTnode* modify_type(struct ASTnode* tree, int rtype, int ASTop) {
+
+    if (tree == NULL)
+        return NULL;
+
+    int ltype = tree->type;
+
+    if (is_inttype(ltype) && is_inttype(rtype)) {
+
+        if (ltype == rtype)
+            return tree;
+
+        int lsize = gprimsize(ltype);
+        int rsize = gprimsize(rtype);
+
+        if (lsize > rsize)
+            // large type squeeze to smaller type
+            return NULL;
+
+        if (lsize == rsize)
+            return tree;
+
+        if (lsize < rsize)
+            return mkastunary(A_WIDEN, rtype, tree, 0);
     }
 
-    if (*left == *right) {
-        *left = 0;
-        *right = 0;
-        return;
+    if (is_ptrtype(ltype)){
+        // 0 means operators that do not need to scale
+        if (ASTop == 0 && ltype == rtype)
+            return tree;
     }
 
-    int lsize = gprimsize(*left);
-    int rsize = gprimsize(*right);
-
-    if (lsize == 0 || rsize == 0)
-        fatal("type parameter's size is 0");
-
-    if (lsize < rsize){
-        *left = A_WIDEN;
-        *right = 0;
-        return;
-    }
-
-    if (lsize > rsize) {
-        if (only_right) {
-            snprintf(err_msg, 20, "t1:%d->t2:%d", *left, *right);
-            fatals("Type narrow error", err_msg);
+    if (ASTop == A_ADD || ASTop == A_SUBTRACT) {
+        if (is_inttype(ltype) && is_ptrtype(rtype)) {
+            int type_size = gprimsize(value_at(rtype));
+            if (type_size > 1) {
+                return mkastunary(A_SCALE, rtype, tree, type_size);
+            }
+            else
+                return tree;
         }
-
-        *right = A_WIDEN;
-        *left = 0;
-        return;
     }
 
-    *left = 0;
-    *right = 0;
+    return NULL;
 }
 
 int point_to(int type) {
@@ -70,11 +90,11 @@ int point_to(int type) {
     return totype;
 }
 
-int value_at(int type) {
+int value_at(int ptrtype) {
 
     int attype;
 
-    switch (type) {
+    switch (ptrtype) {
         case P_VOIDPTR:
             attype = P_VOID;
             break;
@@ -88,7 +108,7 @@ int value_at(int type) {
             attype = P_LONG;
             break;
         default:
-            fatald("Illegal pointer type", type);
+            fatald("Illegal pointer type", ptrtype);
     }
 
     return attype;

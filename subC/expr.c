@@ -116,14 +116,17 @@ struct ASTnode* binexpr(int prevprec) {
 
 		right = binexpr(opprec[tokentype]);
 
-        int ltype = left->type;
-        int rtype = right->type;
-        type_compatibility_check(&ltype, &rtype, 0);
+        int ASTop = arithop(tokentype);
+        struct ASTnode* new_left = modify_type(left, right->type, ASTop);
+        struct ASTnode* new_right = modify_type(right, left->type, ASTop);
 
-        if (ltype)
-            left = mkastunary(ltype, right->type, left, 0);
-        if (rtype)
-            right = mkastunary(rtype, left->type, right, 0);
+        if ((new_left == NULL) && (new_right == NULL))
+            fatal("Expression with incompatible types");
+
+        if (new_left != NULL)
+            left = new_left;
+        if (new_right != NULL)
+            right = new_right;
 
 		left = mkastnode(arithop(tokentype), left->type, left, NULL, right, 0);
 

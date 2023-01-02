@@ -5,9 +5,11 @@
 #ifndef HOST_TYPES_H
 #define HOST_TYPES_H
 
-void type_compatibility_check(int* left, int* right, int only_right);
+#include "tree.h"
+
+struct ASTnode* modify_type(struct ASTnode* tree, int rtype, int ASTop);
 
 int point_to(int type);
-int value_at(int type);
+int value_at(int ptrtype);
 
 #endif //HOST_TYPES_H

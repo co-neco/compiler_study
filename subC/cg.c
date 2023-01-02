@@ -195,6 +195,11 @@ int cgderef(int r, int type) {
     return r1;
 }
 
+int cgshlconst(int r, int num) {
+    fprintf(g_outfile, "\tshlq\t$%d, %s\n", num, reglist[r]);
+    return r;
+}
+
 static const char* setx[] = { "sete", "setne", "setl", "setg", "setle", "setge" };
 static const char* jumpx[] = { "jne", "je", "jge", "jle", "jg", "jl" };
 

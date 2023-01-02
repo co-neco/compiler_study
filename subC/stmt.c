@@ -18,11 +18,9 @@ static struct ASTnode* print_statement() {
     match(T_PRINT, "print");
     expr = binexpr(0);
 
-    int ltype = P_INT;
-    int rtype = expr->type;
-    type_compatibility_check(&ltype, &rtype, 0);
-
-    if (rtype) expr = mkastunary(rtype, ltype, expr, 0);
+    expr = modify_type(expr, P_INT, 0);
+    if (expr == NULL)
+        fatal("printint receive a type with bigger size");
 
     return mkastunary(A_PRINT, P_NONE, expr, 0);
 }
@@ -43,11 +41,10 @@ static struct ASTnode* assignment_statement() {
     match(T_ASSIGN, "=");
     left = binexpr(0);
 
-    int ltype = left->type;
-    int rtype = right->type;
-    type_compatibility_check(&ltype, &rtype, 1);
-
-    if (ltype) left = mkastunary(ltype, rtype, left, 0);
+    left = modify_type(left, right->type, 0);
+    if (left == NULL) {
+        fatal("Assignment with incompatible type");
+    }
 
     return mkastnode(A_ASSIGN, right->type, left, NULL, right, 0);
 }
@@ -118,11 +115,9 @@ static struct ASTnode* return_statement() {
 
     struct ASTnode* expr = binexpr(0);
 
-    int ltype = expr->type;
-    int rtype = Gsym[g_functionid].type;
-    type_compatibility_check(&ltype, &rtype, 1);
-    if (ltype)
-        expr = mkastunary(ltype, rtype, expr, 0);
+    expr = modify_type(expr, Gsym[g_functionid].type, 0);
+    if (expr == NULL)
+        fatal("return statement with incompatible type");
 
     return mkastunary(A_RETURN, P_NONE, expr, g_functionid);
 }

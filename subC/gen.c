@@ -2,6 +2,7 @@
 #include "data.h"
 #include "cg.h"
 #include "misc.h"
+#include "types.h"
 
 #include "gen.h"
 
@@ -96,7 +97,7 @@ int genAST(struct ASTnode* n, int reg, int parentop) {
 	switch (n->op) {
         case A_ADD:
             return cgadd(leftreg, rightreg);
-        case A_SUBSTRACT:
+        case A_SUBTRACT:
             return cgsub(leftreg, rightreg);
         case A_MULTIPLY:
             return cgmul(leftreg, rightreg);
@@ -110,6 +111,20 @@ int genAST(struct ASTnode* n, int reg, int parentop) {
             return cgaddr(n->v.id);
         case A_DEREF:
             return cgderef(leftreg, n->type);
+        case A_WIDEN:
+            return cgwiden(leftreg, n->left->type, n->type);
+        case A_SCALE:
+            int value_reg;
+            int type_size = gprimsize(value_at(n->type));
+            switch (type_size) {
+                case 2: value_reg = cgshlconst(leftreg, 1); break;
+                case 4: value_reg = cgshlconst(leftreg, 2); break;
+                case 8: value_reg = cgshlconst(leftreg, 3); break;
+                default:
+                    value_reg = cgmul(leftreg, cgloadint(type_size, P_INT));
+                    break;
+            }
+            return value_reg;
         case A_LVIDENT:
             return cgstoreglob(reg, n->v.id);
         case A_ASSIGN:
@@ -119,8 +134,6 @@ int genAST(struct ASTnode* n, int reg, int parentop) {
         case A_RETURN:
             cgreturn(leftreg, n->v.id);
             return -1;
-        case A_WIDEN:
-            return cgwiden(leftreg, n->left->type, n->type);
         case A_PRINT:
             genprintint(leftreg);
             freeall_registers();
