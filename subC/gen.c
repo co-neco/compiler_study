@@ -106,11 +106,28 @@ int genAST(struct ASTnode* n, int reg, int parentop) {
         case A_INTLIT:
             return cgloadint(n->v.intvalue, n->type);
         case A_IDENT:
-            return cgloadglob(n->v.id);
+            // A rvalue or a dereferenced value
+            if (n->rvalue || parentop == A_DEREF)
+                return cgloadglob(n->v.id);
+            else
+                // example: b = a + 1, b is a lvalue
+                return -1;
+        case A_ASSIGN:
+            int result;
+            switch (n->right->op) {
+                case A_IDENT: result = cgstoreglob(leftreg, n->right->v.id); break;
+                case A_DEREF: result = cgstorederef(leftreg, rightreg, value_at(n->right->type)); break;
+                default: fatal("Wrong type of assignment right operator");
+            }
+            return result;
         case A_ADDR:
             return cgaddr(n->v.id);
         case A_DEREF:
-            return cgderef(leftreg, n->type);
+            if (n->rvalue)
+                return cgderef(leftreg, n->type);
+            else
+                // Leave it for A_ASSIGN to store through the pointer
+                return leftreg;
         case A_WIDEN:
             return cgwiden(leftreg, n->left->type, n->type);
         case A_SCALE:
@@ -125,10 +142,6 @@ int genAST(struct ASTnode* n, int reg, int parentop) {
                     break;
             }
             return value_reg;
-        case A_LVIDENT:
-            return cgstoreglob(reg, n->v.id);
-        case A_ASSIGN:
-            return rightreg;
         case A_FUNCCALL:
             return cgfunccall(leftreg, n->v.id);
         case A_RETURN:

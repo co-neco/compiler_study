@@ -86,6 +86,22 @@ int cgstoreglob(int r, int id) {
 	return r;
 }
 
+int cgstorederef(int r1, int r2, int type) {
+
+    switch (type) {
+        case P_CHAR:
+            fprintf(g_outfile, "\tmovb\t%s, (%s)\n", breglist[r1], reglist[r2]);
+        case P_INT:
+            fprintf(g_outfile, "\tmovl\t%s, (%s)\n", dreglist[r1], reglist[r2]);
+        case P_LONG:
+            fprintf(g_outfile, "\tmovq\t%s, (%s)\n", reglist[r1], reglist[r2]);
+        default:
+            fatald("Bad type in cgstorederef", type);
+    }
+    free_register(r2);
+    return r1;
+}
+
 int cgadd(int r1, int r2) {
 	fprintf(g_outfile, "\taddq\t%s, %s\n", reglist[r1], reglist[r2]);
 	free_register(r1);

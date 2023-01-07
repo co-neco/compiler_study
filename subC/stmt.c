@@ -25,30 +25,6 @@ static struct ASTnode* print_statement() {
     return mkastunary(A_PRINT, P_NONE, expr, 0);
 }
 
-static struct ASTnode* assignment_statement() {
-    struct ASTnode *left, *right;
-    int id;
-
-    ident();
-
-    if ((id = findglob(g_identtext)) == -1)
-        fatals("Undeclared variable", g_identtext);
-
-    if (g_token.token == T_LPARENT)
-        return funccall();
-
-    right = mkastleaf(A_LVIDENT, Gsym[id].type, id);
-    match(T_ASSIGN, "=");
-    left = binexpr(0);
-
-    left = modify_type(left, right->type, 0);
-    if (left == NULL) {
-        fatal("Assignment with incompatible type");
-    }
-
-    return mkastnode(A_ASSIGN, right->type, left, NULL, right, 0);
-}
-
 static struct ASTnode* if_statement() {
 	struct ASTnode *cond, *true, *false = NULL;
 
@@ -152,9 +128,6 @@ struct ASTnode* single_statement() {
             var_declaration(type);
             tree = NULL;
             break;
-        case T_IDENT:
-            tree = assignment_statement();
-            break;
         case T_IF:
             tree = if_statement();
             break;
@@ -167,11 +140,9 @@ struct ASTnode* single_statement() {
         case T_RETURN:
             tree = return_statement();
             break;
-        case T_EOF:
-            // exit current process
-            fatal("Incomplete compound statement");
         default:
-            fatald("Syntax error, token", g_token.token);
+            tree = binexpr(0);
+            break;
     }
 
     return tree;
@@ -188,6 +159,9 @@ struct ASTnode* compound_statement() {
             rbrace();
             return left;
         }
+
+        if (g_token.token == T_EOF)
+            fatal("Incomplete compound statement");
 
         tree = single_statement();
         if (tree == NULL)

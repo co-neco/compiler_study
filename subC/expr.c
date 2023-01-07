@@ -87,10 +87,11 @@ static int arithop(int tokentype) {
 // Operator precedence for each token. Must
 // match up with the order of tokens in defs.h
 static int opprec[] = {
-  0, 10, 10,                    // T_EOF, T_PLUS, T_MINUS
+  0, 1,
+  10, 10,                       // T_EOF, T_PLUS, T_MINUS
   20, 20,                       // T_STAR, T_SLASH
-  5, 5,                         // T_EQ, T_NE ??????
-  6, 6, 6, 6                    // T_LT, T_GT, T_LE, T_GE
+  5, 5,                         // T_EQ, T_NE
+  6, 6, 6, 6          // T_LT, T_GT, T_LE, T_GE
 };
 
 static int op_precedence(int tokentype) {
@@ -98,6 +99,13 @@ static int op_precedence(int tokentype) {
 	if (prec == 0)
 		fatald("Syntax error, token", tokentype);
 	return prec;
+}
+
+static int is_right_associative(int tokentype) {
+    if (tokentype == T_ASSIGN)
+        return 1;
+    else
+        return 0;
 }
 
 struct ASTnode* binexpr(int prevprec) {
@@ -111,8 +119,11 @@ struct ASTnode* binexpr(int prevprec) {
 	if (tokentype == T_SEMI || tokentype == T_RPARENT)
 		return left;
 
-	while (op_precedence(tokentype) > prevprec) {
-		scan(&g_token);
+	while ((op_precedence(tokentype) > prevprec)
+            ||
+            (is_right_associative(tokentype) && (op_precedence(tokentype) == prevprec))) {
+
+        scan(&g_token);
 
 		right = binexpr(opprec[tokentype]);
 
@@ -127,6 +138,13 @@ struct ASTnode* binexpr(int prevprec) {
             left = new_left;
         if (new_right != NULL)
             right = new_right;
+
+        if (ASTop == A_ASSIGN) {
+            struct ASTnode* tmp = left;
+            left = right;
+            right = tmp;
+            left->rvalue = 0;
+        }
 
 		left = mkastnode(arithop(tokentype), left->type, left, NULL, right, 0);
 

@@ -5,6 +5,7 @@ void cgpreamble();
 int cgloadint(int value, int type);
 int cgloadglob(int id);
 int cgstoreglob(int r, int id);
+int cgstorederef(int r1, int r2, int type);
 int cgadd(int r1, int r2);
 int cgsub(int r1, int r2);
 int cgmul(int r1, int r2);

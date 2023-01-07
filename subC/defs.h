@@ -6,13 +6,13 @@
 // Token types
 enum {
     // fixed order
-    T_EOF, 
+    T_EOF, T_ASSIGN,
     T_PLUS, T_MINUS, 
     T_STAR, T_SLASH, 
     T_EQ, T_NE, T_LT, T_GT, T_LE, T_GE,
-    T_INTLIT, T_SEMI, T_ASSIGN, T_IDENT,
 
     // random order
+    T_INTLIT, T_SEMI, T_IDENT,
     T_LBRACE, T_RBRACE, T_LPARENT, T_RPARENT,
     T_AMPER, T_COMMA,
 
@@ -33,10 +33,10 @@ struct token {
 
 enum {
     // The order must be the same as token's enum
-    A_ADD = 1, A_SUBTRACT, A_MULTIPLY, A_DIVIDE,
+    A_ASSIGN = 1, A_ADD, A_SUBTRACT, A_MULTIPLY, A_DIVIDE,
     A_EQ, A_NE, A_LT, A_GT, A_LE, A_GE, 
-    A_INTLIT, A_IDENT, A_LVIDENT, A_ASSIGN,
-    A_PRINT, A_IF, A_WHILE, A_GLUE, A_FUNCTION,
+    A_INTLIT, A_IDENT, A_PRINT,
+    A_IF, A_WHILE, A_GLUE, A_FUNCTION,
     A_WIDEN, A_FUNCCALL, A_RETURN, A_ADDR, A_DEREF,
     A_SCALE
 };
@@ -44,6 +44,7 @@ enum {
 struct ASTnode {
     int op;
     int type;
+    int rvalue;
     struct ASTnode* left;
     struct ASTnode* mid;
     struct ASTnode* right;

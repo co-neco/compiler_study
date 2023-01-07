@@ -22,6 +22,7 @@ struct ASTnode* mkastnode(
 
 	n->op = op;
     n->type = type;
+    n->rvalue = 1; // assume rvalue by default
 	n->left = left;
 	n->mid = mid;
 	n->right = right;
