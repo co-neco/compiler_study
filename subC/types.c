@@ -46,11 +46,8 @@ struct ASTnode* modify_type(struct ASTnode* tree, int rtype, int ASTop) {
             return mkastunary(A_WIDEN, rtype, tree, 0);
     }
 
-    if (is_ptrtype(ltype)){
-        // 0 means operators that do not need to scale
-        if (ASTop == 0 && ltype == rtype)
-            return tree;
-    }
+    if (is_ptrtype(ltype) && ltype == rtype)
+        return tree;
 
     if (ASTop == A_ADD || ASTop == A_SUBTRACT) {
         if (is_inttype(ltype) && is_ptrtype(rtype)) {

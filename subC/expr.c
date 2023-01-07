@@ -143,7 +143,7 @@ struct ASTnode* binexpr(int prevprec) {
             struct ASTnode* tmp = left;
             left = right;
             right = tmp;
-            left->rvalue = 0;
+            right->rvalue = 0;
         }
 
 		left = mkastnode(arithop(tokentype), left->type, left, NULL, right, 0);
