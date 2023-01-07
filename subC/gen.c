@@ -116,7 +116,7 @@ int genAST(struct ASTnode* n, int reg, int parentop) {
             int result;
             switch (n->right->op) {
                 case A_IDENT: result = cgstoreglob(leftreg, n->right->v.id); break;
-                case A_DEREF: result = cgstorederef(leftreg, rightreg, value_at(n->right->type)); break;
+                case A_DEREF: result = cgstorederef(leftreg, rightreg, n->right->type); break;
                 default: fatal("Wrong type of assignment right operator");
             }
             return result;
