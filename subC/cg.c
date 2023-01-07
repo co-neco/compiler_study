@@ -140,15 +140,23 @@ void cgprintint(int r) {
 
 void cgglobsym(int id) {
     int typesize;
+    char* type = NULL;
+
     // Get the size of the type
     typesize = cgprimsize(Gsym[id].type);
 
     fprintf(g_outfile, "\t.data\n" "\t.globl\t%s\n", Gsym[id].name);
+    fprintf(g_outfile, "%s:", Gsym[id].name);
+
     switch(typesize) {
-        case 1: fprintf(g_outfile, "%s:\t.byte\t0\n", Gsym[id].name); break;
-        case 4: fprintf(g_outfile, "%s:\t.long\t0\n", Gsym[id].name); break;
-        case 8: fprintf(g_outfile, "%s:\t.quad\t0\n", Gsym[id].name); break;
+        case 1: type = ".byte"; break;
+        case 4: type = ".long"; break;
+        case 8: type = ".quad"; break;
         default: fatald("Unknown typesize in cgglobsym: ", typesize); break;
+    }
+
+    for (int i = 0; i < Gsym[id].length; ++i) {
+        fprintf(g_outfile, "\t%s\t0\n", type); break;
     }
 }
 

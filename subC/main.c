@@ -12,11 +12,14 @@ static void init() {
 }
 
 static void usage(char* prog) {
-    fprintf(stderr, "Usage: %s infile\n", prog);
+    fprintf(stderr, "Usage: %s infile [-T]\n", prog);
 }
 
 int main(int argc, char* argv[]) {
-    if (argc != 2) {
+
+    if (argc == 3 && !strcmp(argv[2],"-T"))
+        g_dumpAST = 1;
+    else if (argc != 2) {
         usage(argv[0]);
         return -1;
     }
@@ -24,7 +27,7 @@ int main(int argc, char* argv[]) {
     init();
 
     if ((g_infile = fopen(argv[1], "r")) == NULL) {
-        fprintf(stderr, "Unablee to open %s: %s\n", argv[1], strerror(errno));
+        fprintf(stderr, "Unable to open %s: %s\n", argv[1], strerror(errno));
         return -1;
     }
 

@@ -58,7 +58,20 @@ void var_declaration(int type) {
     int symid;
 
     while(1) {
-        symid = addglob(g_identtext, type, S_VARIABLE, 0);
+        if (g_token.token == T_LBRACKET) {
+            scan(&g_token);
+            if (g_token.token != T_INTLIT)
+                fatald("array length is not of int type", g_token.token);
+
+            symid = addglob(g_identtext, point_to(type), S_ARRAY, g_token.intvalue, 0);
+
+            scan(&g_token);
+            rbracket();
+        }
+        else {
+            symid = addglob(g_identtext, type, S_VARIABLE, 1, 0);
+        }
+
         genglobsym(symid);
 
         if (g_token.token != T_COMMA)
@@ -67,7 +80,6 @@ void var_declaration(int type) {
         // next identifier
         scan(&g_token);
         ident();
-        continue;
     }
 
     semi();
@@ -78,7 +90,7 @@ struct ASTnode* function_declaration(int type) {
     int id, endlabel;
 
     endlabel = glabel();
-    id = addglob(g_identtext, type, S_FUNCTION, endlabel);
+    id = addglob(g_identtext, type, S_FUNCTION, 1, endlabel);
 
     lparent();
     rparent();
@@ -116,6 +128,8 @@ void global_declaration() {
             }
 
             genAST(tree, -1, -1);
+            if (g_dumpAST)
+                dumpAST(tree, NOLABEL, 0);
         }
         else {
             var_declaration(type);

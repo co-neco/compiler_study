@@ -28,7 +28,7 @@ static int newglob() {
 	return p;
 }
 
-int addglob(char* name, int type, int stype, int endlabel) {
+int addglob(char* name, int type, int stype, int length, int endlabel) {
 
 	int y;
 
@@ -40,5 +40,6 @@ int addglob(char* name, int type, int stype, int endlabel) {
     Gsym[y].type = type;
     Gsym[y].stype = stype;
     Gsym[y].endlabel = endlabel;
+    Gsym[y].length = length;
 	return y;
 }

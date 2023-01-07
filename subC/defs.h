@@ -3,6 +3,8 @@
 #define TEXTLEN     512
 #define NSYMBOLS    1024
 
+#define NOLABEL	 0		// Use NOLABEL when we have no label to
+
 // Token types
 enum {
     // fixed order
@@ -14,7 +16,7 @@ enum {
     // random order
     T_INTLIT, T_SEMI, T_IDENT,
     T_LBRACE, T_RBRACE, T_LPARENT, T_RPARENT,
-    T_AMPER, T_COMMA,
+    T_LBRACKET, T_RBRACKET, T_AMPER, T_COMMA,
 
     // Keywords
     T_PRINT, T_INT, T_IF, T_ELSE, T_WHILE, T_FOR,
@@ -56,7 +58,7 @@ struct ASTnode {
 
 // Structural types
 enum {
-    S_VARIABLE, S_FUNCTION
+    S_VARIABLE, S_FUNCTION, S_ARRAY
 };
 
 struct symtable {
@@ -64,4 +66,5 @@ struct symtable {
     int type;
     int stype;
     int endlabel;
+    int length;
 };

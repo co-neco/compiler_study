@@ -3,6 +3,8 @@
 void match(int t, char* what);
 void semi(void);
 void ident(void);
+void lbracket();
+void rbracket();
 void lbrace();
 void rbrace();
 void lparent();

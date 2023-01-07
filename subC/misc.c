@@ -20,6 +20,14 @@ void ident() {
 	match(T_IDENT, "identifier");
 }
 
+void lbracket() {
+    match(T_LBRACKET, "[");
+}
+
+void rbracket() {
+    match(T_RBRACKET, "]");
+}
+
 void lbrace() {
 	match(T_LBRACE, "{");
 }

@@ -48,27 +48,44 @@ static struct ASTnode* primary() {
 	int id;
 
 	switch (g_token.token) {
-	case T_INTLIT:
-        if (g_token.intvalue >= 0 && g_token.intvalue < 256)
-            node = mkastleaf(A_INTLIT, P_CHAR, g_token.intvalue);
-        else
-            node = mkastleaf(A_INTLIT, P_INT, g_token.intvalue);
-		break;
-	case T_IDENT:
-		id = findglob(g_identtext);
-		if (id == -1)
-			fatals("Unknown variable", g_identtext);
+        case T_INTLIT:
+            if (g_token.intvalue >= 0 && g_token.intvalue < 256)
+                node = mkastleaf(A_INTLIT, P_CHAR, g_token.intvalue);
+            else
+                node = mkastleaf(A_INTLIT, P_INT, g_token.intvalue);
+            break;
+        case T_IDENT:
+            id = findglob(g_identtext);
+            if (id == -1)
+                fatals("Unknown variable", g_identtext);
 
-        scan(&g_token);
-        if (g_token.token == T_LPARENT) {
-            return funccall();
-        }
+            scan(&g_token);
+            if (g_token.token == T_LPARENT) {
+                return funccall();
+            }
 
-        restore_token(&g_token);
-        node = mkastleaf(A_IDENT, Gsym[id].type, id);
-		break;
-	default:
-		fatald("Syntax error, token", g_token.token);
+            if (g_token.token == T_LBRACKET) {
+                scan(&g_token);
+                struct ASTnode* index = binexpr(0);
+                rbracket();
+
+                return array_value(id, index);
+            }
+
+            restore_token(&g_token);
+            node = mkastleaf(A_IDENT, Gsym[id].type, id);
+            if (Gsym[id].stype == S_ARRAY) {
+                node->op = A_ADDR;
+            }
+            break;
+        case T_LPARENT:
+            lparent();
+            node = binexpr(0);
+            rparent();
+            return node;
+
+        default:
+            fatald("Syntax error, token", g_token.token);
 	}
 
 	scan(&g_token);
@@ -116,7 +133,8 @@ struct ASTnode* binexpr(int prevprec) {
 	left = prefix();
 
 	tokentype = g_token.token;
-	if (tokentype == T_SEMI || tokentype == T_RPARENT)
+	if (tokentype == T_SEMI || tokentype == T_RPARENT
+        || tokentype == T_RBRACKET)
 		return left;
 
 	while ((op_precedence(tokentype) > prevprec)
@@ -149,7 +167,8 @@ struct ASTnode* binexpr(int prevprec) {
 		left = mkastnode(arithop(tokentype), left->type, left, NULL, right, 0);
 
 		tokentype = g_token.token;
-		if (tokentype == T_SEMI || tokentype == T_RPARENT)
+		if (tokentype == T_SEMI || tokentype == T_RPARENT
+            || tokentype == T_RBRACKET)
 			return left;
 	}
 

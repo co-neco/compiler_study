@@ -113,6 +113,20 @@ struct ASTnode* funccall() {
     return tree;
 }
 
+struct ASTnode* array_value(int symid, struct ASTnode* index) {
+    struct ASTnode* tree;
+
+    tree = mkastleaf(A_ADDR, Gsym[symid].type, symid);
+
+    index = modify_type(index, tree->type, A_ADD);
+    if (!index)
+        fatal("Incompatible type when index array");
+
+    tree = mkastnode(A_ADD, tree->type, tree, NULL, index, 0);
+    tree = mkastunary(A_DEREF, value_at(tree->type), tree, 0);
+    return tree;
+}
+
 struct ASTnode* single_statement() {
     struct ASTnode* tree = NULL;
 

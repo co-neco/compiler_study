@@ -10,7 +10,7 @@
 
 void parse_file() {
 
-    addglob("printint", P_CHAR, S_FUNCTION, 0);
+    addglob("printint", P_CHAR, S_FUNCTION, 1, 0);
 
     genpreamble();
     global_declaration();

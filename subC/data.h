@@ -10,6 +10,7 @@
 
 extern_ int g_line;
 extern_ int g_putback;
+extern_ int g_dumpAST;
 extern_ FILE* g_infile;
 extern_ FILE* g_outfile;
 extern_ struct token g_token;
