@@ -6,11 +6,6 @@
 
 #include "gen.h"
 
-int glabel() {
-	static int label = 1;
-	return label++;
-}
-
 static void genIfAST(struct ASTnode* n) {
 	int lend, lfalse;
 
@@ -105,6 +100,8 @@ int genAST(struct ASTnode* n, int reg, int parentop) {
             return cgdiv(leftreg, rightreg);
         case A_INTLIT:
             return cgloadint(n->v.intvalue, n->type);
+        case A_STRLIT:
+            return cgloadglobstr(n->v.id);
         case A_IDENT:
             // A rvalue or a dereferenced value
             if (n->rvalue || parentop == A_DEREF)
@@ -185,4 +182,15 @@ void genglobsym(int id) {
 
 int gprimsize(int type) {
     return cgprimsize(type);
+}
+
+int glabel() {
+    static int label = 1;
+    return label++;
+}
+
+int genglobstr(const char* str) {
+    int label = glabel();
+    cgglobstr(label, str);
+    return label;
 }

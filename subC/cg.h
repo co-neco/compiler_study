@@ -12,6 +12,8 @@ int cgmul(int r1, int r2);
 int cgdiv(int r1, int r2);
 void cgprintint(int r);
 void cgglobsym(int id);
+void cgglobstr(int label, const char* str);
+int cgloadglobstr(int id);
 
 void cgfuncpreamble(char* sym);
 void cgfuncpostamble(int id);

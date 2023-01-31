@@ -6,6 +6,7 @@
 #include "scan.h"
 #include "types.h"
 #include "stmt.h"
+#include "gen.h"
 
 #include "expr.h"
 
@@ -53,6 +54,10 @@ static struct ASTnode* primary() {
                 node = mkastleaf(A_INTLIT, P_CHAR, g_token.intvalue);
             else
                 node = mkastleaf(A_INTLIT, P_INT, g_token.intvalue);
+            break;
+        case T_STRLIT:
+            id = genglobstr(g_strtext);
+            node = mkastleaf(A_STRLIT, P_CHARPTR, id);
             break;
         case T_IDENT:
             id = findglob(g_identtext);

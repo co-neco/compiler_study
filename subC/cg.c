@@ -160,6 +160,22 @@ void cgglobsym(int id) {
     }
 }
 
+void cgglobstr(int label, const char* str) {
+    const char* cur;
+
+    cglabel(label);
+    for (cur = str; *cur; cur++) {
+        fprintf(g_outfile, "\t.byte\t%d\n", *cur);
+    }
+    fprintf(g_outfile, "\t.byte\t0\n");
+}
+
+int cgloadglobstr(int id) {
+    int r = alloc_register();
+    fprintf(g_outfile, "\tleaq\tL%d(%%rip), %s\n", id, reglist[r]);
+    return r;
+}
+
 void cgfuncpreamble(char* sym) {
     fprintf(g_outfile,
             "\t.text\n"

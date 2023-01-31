@@ -15,5 +15,6 @@ extern_ FILE* g_infile;
 extern_ FILE* g_outfile;
 extern_ struct token g_token;
 extern_ int g_functionid;
-extern_ char g_identtext[TEXTLEN + 1];
+extern_ char g_identtext[TEXTLEN];
+extern_ char g_strtext[TEXTLEN];
 extern_ struct symtable Gsym[NSYMBOLS];

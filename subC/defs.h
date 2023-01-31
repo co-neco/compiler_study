@@ -14,7 +14,7 @@ enum {
     T_EQ, T_NE, T_LT, T_GT, T_LE, T_GE,
 
     // random order
-    T_INTLIT, T_SEMI, T_IDENT,
+    T_INTLIT, T_SEMI, T_IDENT, T_STRLIT,
     T_LBRACE, T_RBRACE, T_LPARENT, T_RPARENT,
     T_LBRACKET, T_RBRACKET, T_AMPER, T_COMMA,
 
@@ -37,7 +37,7 @@ enum {
     // The order must be the same as token's enum
     A_ASSIGN = 1, A_ADD, A_SUBTRACT, A_MULTIPLY, A_DIVIDE,
     A_EQ, A_NE, A_LT, A_GT, A_LE, A_GE, 
-    A_INTLIT, A_IDENT, A_PRINT,
+    A_INTLIT, A_IDENT, A_PRINT, A_STRLIT,
     A_IF, A_WHILE, A_GLUE, A_FUNCTION,
     A_WIDEN, A_FUNCCALL, A_RETURN, A_ADDR, A_DEREF,
     A_SCALE
