@@ -184,19 +184,52 @@ int scan(struct token* t) {
             t->token = T_EOF;
             return 0;
         case '+':
-            t->token = T_PLUS;
+            c = next();
+            if (c == '+')
+                t->token = T_INC;
+            else{
+                t->token = T_PLUS;
+                putback(c);
+            }
             break;
         case '-':
-            t->token = T_MINUS;
+            c = next();
+            if (c == '-')
+                t->token = T_DEC;
+            else{
+                t->token = T_MINUS;
+                putback(c);
+            }
             break;
         case '*':
             t->token = T_STAR;
             break;
-        case '&':
-            t->token = T_AMPER;
-            break;
         case '/':
             t->token = T_SLASH;
+            break;
+        case '|':
+            c = next();
+            if (c == '|')
+                t->token = T_LOGOR;
+            else{
+                t->token = T_OR;
+                putback(c);
+            }
+            break;
+        case '^':
+            t->token = T_XOR;
+            break;
+        case '&':
+            c = next();
+            if (c == '&')
+                t->token = T_LOGAND;
+            else {
+                t->token = T_AMPER;
+                putback(c);
+            }
+            break;
+        case '~':
+            t->token = T_INVERT;
             break;
         case ';':
             t->token = T_SEMI;
@@ -242,26 +275,29 @@ int scan(struct token* t) {
             }
             break;
         case '!':
-            if ((c = next()) == '=') {
+            c = next();
+            if (c == '=')
                 t->token = T_NE;
-            }
             else {
-                fatalc("Unrecognized character", c);                
+                t->token = T_LOGNOT;
+                putback(c);
             }
             break;
         case '<':
-            if ((c = next()) == '=') {
+            if ((c = next()) == '=')
                 t->token = T_LE;
-            }
+            else if (c == '<')
+                t->token = T_LSHIFT;
             else {
                 putback(c);
                 t->token = T_LT;
             }
             break;
         case '>':
-            if ((c = next()) == '=') {
+            if ((c = next()) == '=')
                 t->token = T_GE;
-            }
+            else if (c == '>')
+                t->token = T_RSHIFT;
             else {
                 putback(c);
                 t->token = T_GT;
@@ -275,7 +311,7 @@ int scan(struct token* t) {
             }
             else if (isalpha(c) || '_' == c) {
                 scanident(c, g_identtext, TEXTLEN);
-                if (tokentype = keyword(g_identtext)){
+                if ((tokentype = keyword(g_identtext))){
                     t->token = tokentype;
                     break;
                 }

@@ -33,7 +33,7 @@ static struct ASTnode* if_statement() {
 
 	cond = binexpr(0);
 	if (!isarithop(cond->op))
-		fatald("If statement with wrong condition operator", cond->op);
+        cond = mkastunary(A_TOBOOL, cond.type, cond, 0);
 
 	rparent();
 	true = compound_statement();
@@ -53,6 +53,9 @@ static struct ASTnode* while_statement() {
     lparent();
 
     cond = binexpr(0);
+    if (!isarithop(cond->op))
+        cond = mkastunary(A_TOBOOL, cond.type, cond, 0);
+
     rparent();
 
     struct ASTnode* stmts = compound_statement();
@@ -69,6 +72,9 @@ static struct ASTnode* for_statement() {
     semi();
 
     cond = binexpr(0);
+    if (!isarithop(cond->op))
+        cond = mkastunary(A_TOBOOL, cond.type, cond, 0);
+
     semi();
 
     post = single_statement();
@@ -96,35 +102,6 @@ static struct ASTnode* return_statement() {
         fatal("return statement with incompatible type");
 
     return mkastunary(A_RETURN, P_NONE, expr, g_functionid);
-}
-
-struct ASTnode* funccall() {
-    struct ASTnode* tree;
-
-    int id = findglob(g_identtext);
-    if (id == -1)
-        fatals("undeclared variable", g_identtext);
-
-    lparent();
-    struct ASTnode* para = binexpr(0);
-    rparent();
-
-    tree = mkastunary(A_FUNCCALL, Gsym[id].type, para, id);
-    return tree;
-}
-
-struct ASTnode* array_value(int symid, struct ASTnode* index) {
-    struct ASTnode* tree;
-
-    tree = mkastleaf(A_ADDR, Gsym[symid].type, symid);
-
-    index = modify_type(index, tree->type, A_ADD);
-    if (!index)
-        fatal("Incompatible type when index array");
-
-    tree = mkastnode(A_ADD, tree->type, tree, NULL, index, 0);
-    tree = mkastunary(A_DEREF, value_at(tree->type), tree, 0);
-    return tree;
 }
 
 struct ASTnode* single_statement() {

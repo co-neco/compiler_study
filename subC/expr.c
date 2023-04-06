@@ -5,12 +5,49 @@
 #include "sym.h"
 #include "scan.h"
 #include "types.h"
-#include "stmt.h"
 #include "gen.h"
 
 #include "expr.h"
 
+static struct ASTnode* postfix();
 static struct ASTnode* primary();
+
+struct ASTnode* funccall() {
+    struct ASTnode* tree;
+
+    int id = findglob(g_identtext);
+    if (id == -1)
+        fatals("undeclared variable", g_identtext);
+
+    lparent();
+    struct ASTnode* para = binexpr(0);
+    rparent();
+
+    tree = mkastunary(A_FUNCCALL, Gsym[id].type, para, id);
+    return tree;
+}
+
+struct ASTnode* array_value(int symid) {
+    struct ASTnode* tree;
+
+    int id = findglob(g_identtext);
+    if (id == -1 || Gsym[symid].stype != S_ARRAY)
+        fatals("undeclared array", g_identtext);
+
+    lbracket();
+    struct ASTnode* index = binexpr(0);
+    rbracket();
+
+    tree = mkastleaf(A_ADDR, Gsym[symid].type, symid);
+
+    index = modify_type(index, tree->type, A_ADD);
+    if (!index)
+        fatal("Incompatible type when index array");
+
+    tree = mkastnode(A_ADD, tree->type, tree, NULL, index, 0);
+    tree = mkastunary(A_DEREF, value_at(tree->type), tree, 0);
+    return tree;
+}
 
 static struct ASTnode* prefix() {
 
@@ -36,11 +73,76 @@ static struct ASTnode* prefix() {
 
             tree = mkastunary(A_DEREF, value_at(tree->type), tree, 0);
             break;
+        // T_MINUS, T_LOGNOT, T_INVERT can be a lvalue or a rvalue
+        case T_MINUS:
+            scan(&g_token);
+            tree = prefix();
+            tree = mkastunary(A_NEGATE, tree->type, tree, 0);
+            break;
+        case T_LOGNOT:
+            scan(&g_token);
+            tree = prefix();
+            tree = mkastunary(A_LOGNOT, tree->type, tree, 0);
+            break;
+        case T_INVERT:
+            scan(&g_token);
+            tree = prefix();
+            tree = mkastunary(A_INVERT, tree->type, tree, 0);
+            break;
+        case T_DEC:
+            scan(&g_token);
+            tree = prefix();
+
+            if (tree->op != A_IDENT) {
+                fatal("pre-decrement must be followed by a lvalue");
+            }
+
+            tree = mkastunary(A_PREDEC, tree->type, tree, 0);
+            break;
+        case T_INC:
+            scan(&g_token);
+            tree = prefix();
+
+            if (tree->op != A_IDENT) {
+                fatal("pre-increment must be followed by a lvalue");
+            }
+
+            tree = mkastunary(A_PREINC, tree->type, tree, 0);
+            break;
         default:
-            tree = primary();
+            tree = postfix();
     }
 
     return tree;
+}
+
+static struct ASTnode* postfix() {
+
+    struct ASTnode* node;
+
+    node = primary();
+    if (node->type != T_IDENT) {
+        scan(&g_token);
+        return node;
+    }
+
+    // Do not support (expression) + ((expression), [expression], ++, --) now.
+    switch (g_token.token) {
+        case T_LPARENT:
+            node = funccall();
+            break;
+        case T_LBRACKET:
+            node = array_value(node->v.id);
+            break;
+        case T_INC:
+            node = mkastunary(A_POSTINC, node->type, node, 0);
+            break;
+        case T_DEC:
+            node = mkastunary(A_POSTDEC, node->type, node, 0);
+            break;
+    }
+
+    return node;
 }
 
 static struct ASTnode* primary() {
@@ -64,20 +166,6 @@ static struct ASTnode* primary() {
             if (id == -1)
                 fatals("Unknown variable", g_identtext);
 
-            scan(&g_token);
-            if (g_token.token == T_LPARENT) {
-                return funccall();
-            }
-
-            if (g_token.token == T_LBRACKET) {
-                scan(&g_token);
-                struct ASTnode* index = binexpr(0);
-                rbracket();
-
-                return array_value(id, index);
-            }
-
-            restore_token(&g_token);
             node = mkastleaf(A_IDENT, Gsym[id].type, id);
             if (Gsym[id].stype == S_ARRAY) {
                 node->op = A_ADDR;
@@ -86,14 +174,14 @@ static struct ASTnode* primary() {
         case T_LPARENT:
             lparent();
             node = binexpr(0);
-            rparent();
-            return node;
-
+            if (g_token.token != T_RPARENT)
+                fatal("No right parent in an expression");
+            break;
         default:
             fatald("Syntax error, token", g_token.token);
 	}
 
-	scan(&g_token);
+    scan(&g_token);
 	return node;
 }
 
@@ -109,10 +197,12 @@ static int arithop(int tokentype) {
 // Operator precedence for each token. Must
 // match up with the order of tokens in defs.h
 static int opprec[] = {
-  0, 1,
-  10, 10,                       // T_EOF, T_PLUS, T_MINUS
-  20, 20,                       // T_STAR, T_SLASH
-  5, 5,                         // T_EQ, T_NE
+  DEFAULT_PREC, 1,
+  12, 11, 10, 9, 8,  // T_LOGOR, T_LOGAND, T_OR, T_XOR, T_AMPER,
+  5, 5,                          // T_LSHIFT, T_RSHIFT,
+  4, 4,                         // T_PLUS, T_MINUS
+  3, 3,                       // T_STAR, T_SLASH
+  7, 7,                         // T_EQ, T_NE
   6, 6, 6, 6          // T_LT, T_GT, T_LE, T_GE
 };
 
@@ -120,7 +210,7 @@ static int op_precedence(int tokentype) {
 	int prec = opprec[tokentype];
 	if (prec == 0)
 		fatald("Syntax error, token", tokentype);
-	return prec;
+	return -prec;
 }
 
 static int is_right_associative(int tokentype) {
@@ -136,6 +226,7 @@ struct ASTnode* binexpr(int prevprec) {
 	int tokentype;
 
 	left = prefix();
+    left->rvalue = 0;
 
 	tokentype = g_token.token;
 	if (tokentype == T_SEMI || tokentype == T_RPARENT

@@ -85,9 +85,9 @@ int genAST(struct ASTnode* n, int reg, int parentop) {
     }
 
 	if (n->left)
-		leftreg = genAST(n->left, -1, -1);
+		leftreg = genAST(n->left, -1, n->op);
 	if (n->right)
-		rightreg = genAST(n->right, leftreg, -1);
+		rightreg = genAST(n->right, leftreg, n->op);
 
 	switch (n->op) {
         case A_ADD:
@@ -98,6 +98,8 @@ int genAST(struct ASTnode* n, int reg, int parentop) {
             return cgmul(leftreg, rightreg);
         case A_DIVIDE:
             return cgdiv(leftreg, rightreg);
+        //case LOGOR:
+
         case A_INTLIT:
             return cgloadint(n->v.intvalue, n->type);
         case A_STRLIT:
@@ -105,7 +107,7 @@ int genAST(struct ASTnode* n, int reg, int parentop) {
         case A_IDENT:
             // A rvalue or a dereferenced value
             if (n->rvalue || parentop == A_DEREF)
-                return cgloadglob(n->v.id);
+                return cgloadglob(n->v.id, n->op);
             else
                 // example: b = a + 1, b is a lvalue
                 return -1;
@@ -144,10 +146,8 @@ int genAST(struct ASTnode* n, int reg, int parentop) {
         case A_RETURN:
             cgreturn(leftreg, n->v.id);
             return -1;
-        case A_PRINT:
-            genprintint(leftreg);
-            freeall_registers();
-            return -1;
+        case A_TOBOOL:
+            cgtobool(n->v.id, parentop, reg);
         case A_EQ:
         case A_NE:
         case A_LT:
@@ -170,10 +170,6 @@ int genAST(struct ASTnode* n, int reg, int parentop) {
 
 void genpreamble() {
 	cgpreamble();
-}
-
-void genprintint(int reg) {
-	cgprintint(reg);
 }
 
 void genglobsym(int id) {
